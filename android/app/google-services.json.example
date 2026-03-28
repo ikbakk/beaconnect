@@ -1,0 +1,24 @@
+{
+  "note": "Placeholder only. Replace with the real Firebase Android config and save it as android/app/google-services.json.",
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "beaconnect-placeholder",
+    "storage_bucket": "beaconnect-placeholder.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:placeholder",
+        "android_client_info": {
+          "package_name": "com.beaconnect.beaconnect"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "placeholder-android-api-key"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}

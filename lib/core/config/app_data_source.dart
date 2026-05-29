@@ -1,0 +1,4 @@
+enum AppDataSource {
+  local,
+  firebase,
+}

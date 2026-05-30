@@ -19,10 +19,7 @@ Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final preferences = await SharedPreferences.getInstance();
-  const useFirebase = bool.fromEnvironment('USE_FIREBASE');
-  const appConfig = AppConfig(
-    dataSource: useFirebase ? AppDataSource.firebase : AppDataSource.local,
-  );
+  const appConfig = AppConfig(dataSource: AppDataSource.firebase);
 
   if (appConfig.dataSource == AppDataSource.firebase) {
     await Firebase.initializeApp(

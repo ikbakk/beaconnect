@@ -26,18 +26,51 @@ class OnboardingScreen extends ConsumerWidget {
       ),
       OnboardingStep.account => _OnboardingContent(
         eyebrow: 'Your account',
-        title: 'Start with your name.',
+        title: 'Use your email and password.',
         body:
-            'Use the name your partner will recognize right away. Keep it simple and familiar.',
-        primaryLabel: 'Continue with Google',
+            'Choose a private sign-in you can remember easily. Beaconnect will use the name from your email unless you change it later.',
+        primaryLabel: 'Continue',
         onPrimary: () async {
+          if (state.email.isEmpty) {
+            controller.showAuthMessage('Add your email to continue.');
+            return;
+          }
+          if (state.password.length < 6) {
+            controller.showAuthMessage(
+              'Choose a password with at least 6 characters.',
+            );
+            return;
+          }
+          if (state.password != state.confirmPassword) {
+            controller.showAuthMessage('Make sure both passwords match.');
+            return;
+          }
           controller.startWork();
-          final user = await ref.read(signInWithGoogleUseCaseProvider).call();
-          ref.read(currentUserProvider.notifier).state = user;
-          await controller.signIn(user);
+          try {
+            final user = await ref
+                .read(signInWithEmailUseCaseProvider)
+                .call(email: state.email, password: state.password);
+            ref.read(currentUserProvider.notifier).state = user;
+            await controller.signIn(user);
+          } catch (_) {
+            controller.showAuthMessage(
+              'Something did not go as expected. Please check your email and password and try again.',
+            );
+          }
         },
         secondaryLabel: 'Back',
         onSecondary: controller.back,
+        inputLabel: 'Email',
+        inputValue: state.email,
+        onChanged: controller.updateEmail,
+        secondaryInputLabel: 'Password',
+        secondaryInputValue: state.password,
+        onSecondaryChanged: controller.updatePassword,
+        obscureSecondaryInput: true,
+        tertiaryInputLabel: 'Confirm password',
+        tertiaryInputValue: state.confirmPassword,
+        onTertiaryChanged: controller.updateConfirmPassword,
+        obscureTertiaryInput: true,
       ),
       OnboardingStep.pairing => _OnboardingContent(
         eyebrow: 'Pairing',
@@ -155,6 +188,10 @@ class OnboardingScreen extends ConsumerWidget {
                   ),
                 ),
               ],
+              if (state.authMessage case final authMessage?) ...[
+                const SizedBox(height: 16),
+                Text(authMessage, style: theme.textTheme.bodyMedium),
+              ],
               if (content.inputLabel case final inputLabel?) ...[
                 const SizedBox(height: 16),
                 TextField(
@@ -167,10 +204,63 @@ class OnboardingScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  textCapitalization: TextCapitalization.characters,
+                  keyboardType: state.step == OnboardingStep.account
+                      ? TextInputType.emailAddress
+                      : TextInputType.text,
+                  autocorrect: false,
+                  enableSuggestions: state.step != OnboardingStep.account,
+                  textCapitalization: state.step == OnboardingStep.account
+                      ? TextCapitalization.none
+                      : TextCapitalization.characters,
                   decoration: InputDecoration(
                     labelText: inputLabel,
-                    hintText: 'Enter their code',
+                    hintText: state.step == OnboardingStep.account
+                        ? 'name@example.com'
+                        : 'Enter their code',
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+              if (content.secondaryInputLabel case final secondaryInputLabel?) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  onChanged: content.onSecondaryChanged,
+                  controller: TextEditingController.fromValue(
+                    TextEditingValue(
+                      text: content.secondaryInputValue ?? '',
+                      selection: TextSelection.collapsed(
+                        offset: (content.secondaryInputValue ?? '').length,
+                      ),
+                    ),
+                  ),
+                  obscureText: content.obscureSecondaryInput,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    labelText: secondaryInputLabel,
+                    hintText: 'At least 6 characters',
+                    border: const OutlineInputBorder(),
+                  ),
+                ),
+              ],
+              if (content.tertiaryInputLabel case final tertiaryInputLabel?) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  onChanged: content.onTertiaryChanged,
+                  controller: TextEditingController.fromValue(
+                    TextEditingValue(
+                      text: content.tertiaryInputValue ?? '',
+                      selection: TextSelection.collapsed(
+                        offset: (content.tertiaryInputValue ?? '').length,
+                      ),
+                    ),
+                  ),
+                  obscureText: content.obscureTertiaryInput,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  decoration: InputDecoration(
+                    labelText: tertiaryInputLabel,
+                    hintText: 'Repeat your password',
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -227,6 +317,14 @@ class _OnboardingContent {
     this.inputLabel,
     this.inputValue,
     this.onChanged,
+    this.secondaryInputLabel,
+    this.secondaryInputValue,
+    this.onSecondaryChanged,
+    this.obscureSecondaryInput = false,
+    this.tertiaryInputLabel,
+    this.tertiaryInputValue,
+    this.onTertiaryChanged,
+    this.obscureTertiaryInput = false,
   });
 
   final String eyebrow;
@@ -240,4 +338,12 @@ class _OnboardingContent {
   final String? inputLabel;
   final String? inputValue;
   final ValueChanged<String>? onChanged;
+  final String? secondaryInputLabel;
+  final String? secondaryInputValue;
+  final ValueChanged<String>? onSecondaryChanged;
+  final bool obscureSecondaryInput;
+  final String? tertiaryInputLabel;
+  final String? tertiaryInputValue;
+  final ValueChanged<String>? onTertiaryChanged;
+  final bool obscureTertiaryInput;
 }

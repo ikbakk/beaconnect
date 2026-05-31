@@ -17,6 +17,10 @@ class OnboardingState {
     required this.currentUser,
     required this.currentPair,
     required this.isWorking,
+    required this.email,
+    required this.password,
+    required this.confirmPassword,
+    required this.authMessage,
     required this.enteredInviteCode,
   });
 
@@ -24,6 +28,10 @@ class OnboardingState {
   final AppUser? currentUser;
   final PairRecord? currentPair;
   final bool isWorking;
+  final String email;
+  final String password;
+  final String confirmPassword;
+  final String? authMessage;
   final String enteredInviteCode;
 
   String get inviteCode => currentPair?.inviteCode ?? '—';
@@ -35,15 +43,24 @@ class OnboardingState {
     AppUser? currentUser,
     PairRecord? currentPair,
     bool? isWorking,
+    String? email,
+    String? password,
+    String? confirmPassword,
+    String? authMessage,
     String? enteredInviteCode,
     bool clearUser = false,
     bool clearPair = false,
+    bool clearAuthMessage = false,
   }) {
     return OnboardingState(
       step: step ?? this.step,
       currentUser: clearUser ? null : currentUser ?? this.currentUser,
       currentPair: clearPair ? null : currentPair ?? this.currentPair,
       isWorking: isWorking ?? this.isWorking,
+      email: email ?? this.email,
+      password: password ?? this.password,
+      confirmPassword: confirmPassword ?? this.confirmPassword,
+      authMessage: clearAuthMessage ? null : authMessage ?? this.authMessage,
       enteredInviteCode: enteredInviteCode ?? this.enteredInviteCode,
     );
   }
@@ -57,6 +74,10 @@ class OnboardingController extends StateNotifier<OnboardingState> {
           currentUser: null,
           currentPair: null,
           isWorking: false,
+          email: '',
+          password: '',
+          confirmPassword: '',
+          authMessage: null,
           enteredInviteCode: '',
         ),
       );
@@ -82,6 +103,7 @@ class OnboardingController extends StateNotifier<OnboardingState> {
       currentUser: user,
       isWorking: false,
       step: OnboardingStep.pairing,
+      clearAuthMessage: true,
     );
   }
 
@@ -108,15 +130,31 @@ class OnboardingController extends StateNotifier<OnboardingState> {
     );
   }
 
+  void updateEmail(String value) {
+    state = state.copyWith(email: value.trim(), clearAuthMessage: true);
+  }
+
+  void updatePassword(String value) {
+    state = state.copyWith(password: value, clearAuthMessage: true);
+  }
+
+  void updateConfirmPassword(String value) {
+    state = state.copyWith(confirmPassword: value, clearAuthMessage: true);
+  }
+
   void updateInviteCode(String value) {
     state = state.copyWith(enteredInviteCode: value.trim());
   }
 
   void startWork() {
-    state = state.copyWith(isWorking: true);
+    state = state.copyWith(isWorking: true, clearAuthMessage: true);
   }
 
   void stopWork() {
     state = state.copyWith(isWorking: false);
+  }
+
+  void showAuthMessage(String message) {
+    state = state.copyWith(isWorking: false, authMessage: message);
   }
 }

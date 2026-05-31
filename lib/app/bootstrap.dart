@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,9 +24,17 @@ Future<void> bootstrap() async {
   const appConfig = AppConfig(dataSource: AppDataSource.firebase);
 
   if (appConfig.dataSource == AppDataSource.firebase) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    try {
+      Firebase.app();
+    } catch (_) {
+      if (Platform.isAndroid) {
+        await Firebase.initializeApp();
+      } else {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
+    }
   }
 
   final authRepository = switch (appConfig.dataSource) {

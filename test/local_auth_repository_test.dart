@@ -9,7 +9,10 @@ void main() {
     final preferences = await SharedPreferences.getInstance();
     final repository = LocalAuthRepository(preferences);
 
-    await repository.signInWithGoogle();
+    await repository.signInWithEmail(
+      email: 'iqbal@example.com',
+      password: 'password123',
+    );
     final restored = await repository.getCurrentUser();
 
     expect(restored?.displayName, 'Iqbal');

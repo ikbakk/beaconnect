@@ -23,12 +23,26 @@ class LocalAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<AppUser> signInWithGoogle() async {
-    final user = const AppUser(
-      id: 'user-1',
-      displayName: 'Iqbal',
+  Future<AppUser> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+    final namePart = normalizedEmail.split('@').first;
+    final displayName = namePart.isEmpty ? 'You' : _toDisplayName(namePart);
+    final user = AppUser(
+      id: 'user-${normalizedEmail.hashCode}',
+      displayName: displayName,
     );
     await _preferences.setString(_userKey, jsonEncode(user.toJson()));
     return user;
+  }
+
+  String _toDisplayName(String value) {
+    if (value.isEmpty) {
+      return 'You';
+    }
+
+    return value[0].toUpperCase() + value.substring(1);
   }
 }

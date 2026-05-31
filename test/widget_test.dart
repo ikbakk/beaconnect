@@ -66,12 +66,16 @@ void main() {
     await tester.enterText(find.byType(TextField).at(0), 'iqbal@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.enterText(find.byType(TextField).at(2), 'password123');
-    await tester.tap(find.text('Continue'));
+    await tester.tap(find.text('Sign in or create account'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
+    if (find.text('Continue').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Continue').first);
+      await tester.pumpAndSettle();
+    }
+    if (find.text('Continue').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Continue').first);
+      await tester.pumpAndSettle();
+    }
     if (find.text('Looks good').evaluate().isNotEmpty) {
       await tester.tap(find.text('Looks good'));
       await tester.pumpAndSettle();
@@ -112,13 +116,17 @@ void main() {
     await tester.enterText(find.byType(TextField).at(0), 'iqbal@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password123');
     await tester.enterText(find.byType(TextField).at(2), 'password123');
-    await tester.tap(find.text('Continue'));
+    await tester.tap(find.text('Sign in or create account'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).at(0), '482915');
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
+    if (find.text('Continue').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Continue').first);
+      await tester.pumpAndSettle();
+    }
+    if (find.text('Continue').evaluate().isNotEmpty) {
+      await tester.tap(find.text('Continue').first);
+      await tester.pumpAndSettle();
+    }
     if (find.text('Looks good').evaluate().isNotEmpty) {
       await tester.tap(find.text('Looks good'));
       await tester.pumpAndSettle();

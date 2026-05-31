@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/providers.dart';
+import '../../auth/domain/auth_failure.dart';
 import '../application/onboarding_controller.dart';
 import '../domain/onboarding_step.dart';
 
@@ -26,10 +27,10 @@ class OnboardingScreen extends ConsumerWidget {
       ),
       OnboardingStep.account => _OnboardingContent(
         eyebrow: 'Your account',
-        title: 'Use your email and password.',
+        title: 'Sign in or create your account.',
         body:
-            'Choose a private sign-in you can remember easily. Beaconnect will use the name from your email unless you change it later.',
-        primaryLabel: 'Continue',
+            'Use your email and password. If you already have an account, you will sign in. If not, Beaconnect will create one for you.',
+        primaryLabel: 'Sign in or create account',
         onPrimary: () async {
           if (state.email.isEmpty) {
             controller.showAuthMessage('Add your email to continue.');
@@ -52,9 +53,11 @@ class OnboardingScreen extends ConsumerWidget {
                 .call(email: state.email, password: state.password);
             ref.read(currentUserProvider.notifier).state = user;
             await controller.signIn(user);
+          } on AuthFailure catch (error) {
+            controller.showAuthMessage(error.message);
           } catch (_) {
             controller.showAuthMessage(
-              'Something did not go as expected. Please check your email and password and try again.',
+              'We could not sign you in just yet. Please try again in a moment.',
             );
           }
         },

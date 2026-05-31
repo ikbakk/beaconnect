@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 import '../domain/app_user.dart';
+import '../domain/auth_failure.dart';
 import '../domain/auth_repository.dart';
 
 class FirebaseAuthRepository implements AuthRepository {
@@ -35,7 +36,7 @@ class FirebaseAuthRepository implements AuthRepository {
     );
     final user = credential.user;
     if (user == null) {
-      throw StateError('Something did not go as expected.');
+      throw const AuthFailure('We could not finish signing you in just yet. Please try again.');
     }
 
     final displayName = user.displayName ?? _displayNameFromEmail(normalizedEmail);
@@ -59,15 +60,48 @@ class FirebaseAuthRepository implements AuthRepository {
         password: password,
       );
     } on firebase_auth.FirebaseAuthException catch (error) {
-      if (error.code != 'user-not-found' && error.code != 'invalid-credential') {
-        rethrow;
+      if (error.code == 'user-not-found' || error.code == 'invalid-credential') {
+        try {
+          return await _firebaseAuth.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+        } on firebase_auth.FirebaseAuthException catch (createError) {
+          throw _mapAuthError(createError);
+        }
       }
 
-      return _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      throw _mapAuthError(error);
     }
+  }
+
+  AuthFailure _mapAuthError(firebase_auth.FirebaseAuthException error) {
+    return switch (error.code) {
+      'invalid-email' => const AuthFailure(
+        'That email does not look right yet. Please check it and try again.',
+      ),
+      'email-already-in-use' => const AuthFailure(
+        'That email is already connected to Beaconnect. Try signing in with the same password you used before.',
+      ),
+      'wrong-password' || 'invalid-credential' => const AuthFailure(
+        'That email and password do not match yet. Please try again.',
+      ),
+      'too-many-requests' => const AuthFailure(
+        'There were too many attempts just now. Please wait a moment and try again.',
+      ),
+      'network-request-failed' => const AuthFailure(
+        'Beaconnect could not reach the internet just now. Please try again in a moment.',
+      ),
+      'operation-not-allowed' => const AuthFailure(
+        'Email sign-in is not ready yet for this project.',
+      ),
+      'weak-password' => const AuthFailure(
+        'Choose a password with at least 6 characters.',
+      ),
+      _ => const AuthFailure(
+        'We could not sign you in just yet. Please try again in a moment.',
+      ),
+    };
   }
 
   String _displayNameFromEmail(String email) {

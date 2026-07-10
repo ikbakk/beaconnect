@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../auth/domain/app_user.dart';
 import '../domain/pair_record.dart';
+import '../domain/pairing_failure.dart';
 import '../domain/pairing_repository.dart';
 
 class FirebasePairingRepository implements PairingRepository {
@@ -51,6 +52,26 @@ class FirebasePairingRepository implements PairingRepository {
 
   @override
   Future<PairRecord> createInviteCode({required AppUser currentUser}) async {
+    final existingInvite = await _findPendingInvite(createdBy: currentUser.id);
+    if (existingInvite != null) {
+      final existingData = existingInvite.data();
+      final expiresAt = existingData?['expiresAt'] as Timestamp?;
+      if (!_isExpired(expiresAt)) {
+        return PairRecord(
+          id: existingData?['pairId'] as String? ?? 'pair-draft-${currentUser.id}',
+          memberIds: [currentUser.id],
+          status: 'pending',
+          inviteCode: existingInvite.id,
+          partnerDisplayName: 'Your partner',
+          expiresInMinutes: _expiresInMinutes(expiresAt),
+        );
+      }
+
+      await _firestore.collection('inviteCodes').doc(existingInvite.id).set({
+        'status': 'expired',
+      }, SetOptions(merge: true));
+    }
+
     final code = _generateInviteCode();
     final expiresAt = Timestamp.fromDate(
       DateTime.now().add(const Duration(minutes: 5)),
@@ -64,12 +85,14 @@ class FirebasePairingRepository implements PairingRepository {
         'status': 'pending',
         'expiresAt': expiresAt,
         'usedBy': null,
+        'usedAt': null,
       });
 
       transaction.set(pairDraftRef, {
         'memberIds': [currentUser.id],
         'status': 'pending',
         'createdAt': FieldValue.serverTimestamp(),
+        'approvedAt': null,
         'endedAt': null,
         'inviteCode': code,
       });
@@ -86,7 +109,7 @@ class FirebasePairingRepository implements PairingRepository {
       status: 'pending',
       inviteCode: code,
       partnerDisplayName: 'Your partner',
-      expiresInMinutes: 5,
+      expiresInMinutes: _expiresInMinutes(expiresAt),
     );
   }
 
@@ -95,69 +118,106 @@ class FirebasePairingRepository implements PairingRepository {
     required AppUser currentUser,
     String? inviteCode,
   }) async {
-    final trimmedInviteCode = inviteCode?.trim();
-    final pendingInvite = trimmedInviteCode == null || trimmedInviteCode.isEmpty
-        ? await _findPendingInvite(createdBy: currentUser.id)
-        : await _loadPendingInviteByCode(trimmedInviteCode);
-    if (pendingInvite == null) {
-      throw StateError('Something did not go as expected.');
+    final normalizedInviteCode = _normalizeInviteCode(inviteCode);
+    if (normalizedInviteCode.isEmpty) {
+      throw const PairingFailure(
+        'Enter your partner\'s code, or pair later for now.',
+      );
     }
 
-    final resolvedInviteCode = pendingInvite.id;
-    final inviteData = pendingInvite.data();
-    if (inviteData == null) {
-      throw StateError('Something did not go as expected.');
-    }
-    final expiresAt = inviteData['expiresAt'] as Timestamp?;
-    if (expiresAt != null && expiresAt.toDate().isBefore(DateTime.now())) {
-      throw StateError('This code is no longer available.');
-    }
+    final approval = await _firestore.runTransaction<_ApprovalResult>((
+      transaction,
+    ) async {
+      final inviteRef = _firestore.collection('inviteCodes').doc(normalizedInviteCode);
+      final inviteSnapshot = await transaction.get(inviteRef);
+      final inviteData = inviteSnapshot.data();
+      if (!inviteSnapshot.exists || inviteData == null) {
+        throw const PairingFailure(
+          'That code is not available right now. Check it and try again.',
+        );
+      }
 
-    final pairId = inviteData['pairId'] as String?;
-    if (pairId == null || pairId.isEmpty) {
-      throw StateError('Something did not go as expected.');
-    }
-    final createdBy = inviteData['createdBy'] as String?;
-    if (createdBy == null || createdBy.isEmpty) {
-      throw StateError('Something did not go as expected.');
-    }
+      final status = inviteData['status'] as String? ?? 'pending';
+      if (status != 'pending') {
+        throw const PairingFailure('That code is no longer available.');
+      }
 
-    final pairRef = _firestore.collection('pairs').doc(pairId);
-    final createdByUserRef = _firestore.collection('users').doc(createdBy);
-    final currentUserRef = _firestore.collection('users').doc(currentUser.id);
+      final expiresAt = inviteData['expiresAt'] as Timestamp?;
+      if (_isExpired(expiresAt)) {
+        transaction.set(inviteRef, {'status': 'expired'}, SetOptions(merge: true));
+        throw const PairingFailure('That code is no longer available.');
+      }
 
-    await _firestore.runTransaction((transaction) async {
+      final createdBy = inviteData['createdBy'] as String?;
+      if (createdBy == null || createdBy.isEmpty) {
+        throw const PairingFailure(
+          'Something did not go as expected. Please try again in a moment.',
+        );
+      }
+      if (createdBy == currentUser.id) {
+        throw const PairingFailure(
+          'That is your code. Share it with your partner instead.',
+        );
+      }
+
+      final pairId = inviteData['pairId'] as String?;
+      if (pairId == null || pairId.isEmpty) {
+        throw const PairingFailure(
+          'Something did not go as expected. Please try again in a moment.',
+        );
+      }
+
+      final pairRef = _firestore.collection('pairs').doc(pairId);
+      final pairSnapshot = await transaction.get(pairRef);
+      final pairData = pairSnapshot.data();
+      if (!pairSnapshot.exists || pairData == null) {
+        throw const PairingFailure(
+          'Something did not go as expected. Please try again in a moment.',
+        );
+      }
+
+      final memberIds = List<String>.from(pairData['memberIds'] as List<dynamic>? ?? []);
+      if (memberIds.contains(currentUser.id)) {
+        throw const PairingFailure('You are already connected with this code.');
+      }
+      if (memberIds.length > 1) {
+        throw const PairingFailure('That code has already been used.');
+      }
+
       transaction.set(pairRef, {
         'memberIds': [createdBy, currentUser.id],
         'status': 'active',
-        'createdAt': FieldValue.serverTimestamp(),
+        'inviteCode': normalizedInviteCode,
+        'approvedAt': FieldValue.serverTimestamp(),
         'endedAt': null,
-        'inviteCode': resolvedInviteCode,
       }, SetOptions(merge: true));
 
-      transaction.set(_firestore.collection('inviteCodes').doc(resolvedInviteCode), {
+      transaction.set(inviteRef, {
         'status': 'approved',
         'usedBy': currentUser.id,
+        'usedAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      transaction.set(createdByUserRef, {
+      transaction.set(_firestore.collection('users').doc(createdBy), {
         'activePairId': pairId,
       }, SetOptions(merge: true));
 
-      transaction.set(currentUserRef, {
+      transaction.set(_firestore.collection('users').doc(currentUser.id), {
         'displayName': currentUser.displayName,
         'createdAt': FieldValue.serverTimestamp(),
         'activePairId': pairId,
       }, SetOptions(merge: true));
+
+      return _ApprovalResult(pairId: pairId, createdBy: createdBy);
     });
 
-    final partnerDisplayName = await _loadUserDisplayName(createdBy);
+    final partnerDisplayName = await _loadUserDisplayName(approval.createdBy);
 
     return PairRecord(
-      id: pairId,
-      memberIds: [createdBy, currentUser.id],
+      id: approval.pairId,
+      memberIds: [approval.createdBy, currentUser.id],
       status: 'active',
-      inviteCode: resolvedInviteCode,
+      inviteCode: normalizedInviteCode,
       partnerDisplayName: partnerDisplayName,
       expiresInMinutes: 5,
     );
@@ -201,23 +261,36 @@ class FirebasePairingRepository implements PairingRepository {
     return snapshot.docs.first;
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>?> _loadPendingInviteByCode(
-    String inviteCode,
-  ) async {
-    final snapshot = await _firestore.collection('inviteCodes').doc(inviteCode).get();
-    final data = snapshot.data();
-    if (!snapshot.exists || data == null) {
-      return null;
-    }
-    if ((data['status'] as String?) != 'pending') {
-      return null;
+  bool _isExpired(Timestamp? expiresAt) {
+    return expiresAt != null && expiresAt.toDate().isBefore(DateTime.now());
+  }
+
+  int _expiresInMinutes(Timestamp? expiresAt) {
+    if (expiresAt == null) {
+      return 5;
     }
 
-    return snapshot;
+    final remaining = expiresAt.toDate().difference(DateTime.now()).inSeconds;
+    if (remaining <= 0) {
+      return 0;
+    }
+
+    return (remaining / 60).ceil();
+  }
+
+  String _normalizeInviteCode(String? inviteCode) {
+    return inviteCode?.trim().toUpperCase() ?? '';
   }
 
   String _generateInviteCode() {
     final millis = DateTime.now().millisecondsSinceEpoch.toString();
     return millis.substring(millis.length - 6);
   }
+}
+
+class _ApprovalResult {
+  const _ApprovalResult({required this.pairId, required this.createdBy});
+
+  final String pairId;
+  final String createdBy;
 }

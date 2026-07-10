@@ -13,10 +13,32 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/pairs/$(pairId));
     }
 
+    function inviteDoc(code) {
+      return get(/databases/$(database)/documents/inviteCodes/$(code));
+    }
+
     function isPairMember(pairId) {
       return isSignedIn()
         && pairDoc(pairId).data.memberIds is list
         && request.auth.uid in pairDoc(pairId).data.memberIds;
+    }
+
+    function canJoinPendingPair(pairId) {
+      return isSignedIn()
+        && resource.data.status == 'pending'
+        && resource.data.memberIds is list
+        && resource.data.memberIds.size() == 1
+        && request.resource.data.memberIds is list
+        && request.resource.data.memberIds.size() == 2
+        && request.resource.data.status == 'active'
+        && request.resource.data.inviteCode == resource.data.inviteCode
+        && !(request.auth.uid in resource.data.memberIds)
+        && request.auth.uid in request.resource.data.memberIds
+        && inviteDoc(resource.data.inviteCode).data.pairId == pairId
+        && inviteDoc(resource.data.inviteCode).data.status == 'pending'
+        && inviteDoc(resource.data.inviteCode).data.createdBy == resource.data.memberIds[0]
+        && inviteDoc(resource.data.inviteCode).data.usedBy == null
+        && inviteDoc(resource.data.inviteCode).data.expiresAt > request.time;
     }
 
     match /users/{userId} {
@@ -27,8 +49,11 @@ service cloud.firestore {
       allow read: if isPairMember(pairId);
       allow create: if isSignedIn()
         && request.resource.data.memberIds is list
-        && request.auth.uid in request.resource.data.memberIds;
-      allow update: if isPairMember(pairId);
+        && request.resource.data.memberIds.size() == 1
+        && request.resource.data.memberIds[0] == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.inviteCode is string;
+      allow update: if isPairMember(pairId) || canJoinPendingPair(pairId);
       allow delete: if false;
     }
 
@@ -45,11 +70,29 @@ service cloud.firestore {
     match /inviteCodes/{code} {
       allow read: if isSignedIn();
       allow create: if isSignedIn()
-        && request.resource.data.createdBy == request.auth.uid;
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.pairId is string
+        && request.resource.data.status == 'pending'
+        && request.resource.data.usedBy == null
+        && request.resource.data.expiresAt is timestamp
+        && request.resource.data.expiresAt > request.time;
       allow update: if isSignedIn()
+        && resource.data.status == 'pending'
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.pairId == resource.data.pairId
+        && request.resource.data.expiresAt == resource.data.expiresAt
         && (
-          resource.data.createdBy == request.auth.uid
-          || request.resource.data.usedBy == request.auth.uid
+          (
+            resource.data.createdBy == request.auth.uid
+            && request.resource.data.status == 'expired'
+            && request.resource.data.usedBy == null
+          )
+          || (
+            resource.data.createdBy != request.auth.uid
+            && request.resource.data.status == 'approved'
+            && request.resource.data.usedBy == request.auth.uid
+            && request.resource.data.expiresAt > request.time
+          )
         );
       allow delete: if false;
     }

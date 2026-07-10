@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'providers.dart';
 import 'router.dart';
 import 'theme.dart';
 
-class BeaconnectApp extends StatelessWidget {
+class BeaconnectApp extends ConsumerWidget {
   const BeaconnectApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(widgetUpdateProvider);
+
     final platformDispatcher = View.of(context).platformDispatcher;
     final reducedMotion =
         platformDispatcher.accessibilityFeatures.accessibleNavigation ||

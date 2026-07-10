@@ -57,6 +57,8 @@ import '../features/updates/data/firebase_updates_repository.dart';
 import '../features/updates/data/local_updates_repository.dart';
 import '../features/updates/domain/update_story.dart';
 import '../features/updates/domain/updates_repository.dart';
+import '../features/widget/application/get_widget_snapshot_use_case.dart';
+import '../features/widget/application/widget_updater.dart';
 import 'bootstrap_state.dart';
 
 const onboardingCompletePreferenceKey = 'app.onboarding_complete';
@@ -245,6 +247,15 @@ final latestPlaceSnapshotProvider = FutureProvider<PlaceSnapshot?>(
 final homeSnapshotProvider = FutureProvider<HomeSnapshot>(
   (ref) => ref.watch(getHomeSnapshotUseCaseProvider).call(),
 );
+final widgetUpdateProvider = Provider<void>((ref) {
+  ref.listen<AsyncValue<HomeSnapshot>>(homeSnapshotProvider, (previous, next) {
+    next.whenData((snapshot) {
+      const useCase = GetWidgetSnapshotUseCase();
+      final widgetSnapshot = useCase(snapshot);
+      WidgetUpdater.update(widgetSnapshot);
+    });
+  });
+});
 final batterySaverEnabledProvider = FutureProvider<bool>(
   (ref) => ref.watch(getBatterySaverEnabledUseCaseProvider).call(),
 );

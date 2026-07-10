@@ -27,10 +27,13 @@ class OnboardingScreen extends ConsumerWidget {
       ),
       OnboardingStep.account => _OnboardingContent(
         eyebrow: 'Your account',
-        title: 'Sign in or create your account.',
-        body:
-            'Use your email and password. If you already have an account, you will sign in. If not, Beaconnect will create one for you.',
-        primaryLabel: 'Sign in or create account',
+        title: state.isSignUp
+            ? 'Create your account.'
+            : 'Sign in to your account.',
+        body: state.isSignUp
+            ? 'Use your email and password to create your Beaconnect account. If your account already exists, Beaconnect will still bring you in.'
+            : 'Use the email and password you already chose for Beaconnect. If you need a new account, you can switch to sign up below.',
+        primaryLabel: state.isSignUp ? 'Create account' : 'Sign in',
         onPrimary: () async {
           if (state.email.isEmpty) {
             controller.showAuthMessage('Add your email to continue.');
@@ -42,17 +45,26 @@ class OnboardingScreen extends ConsumerWidget {
             );
             return;
           }
-          if (state.password != state.confirmPassword) {
+          if (state.isSignUp && state.password != state.confirmPassword) {
             controller.showAuthMessage('Make sure both passwords match.');
             return;
           }
           controller.startWork();
           try {
-            final user = await ref
-                .read(signInWithEmailUseCaseProvider)
-                .call(email: state.email, password: state.password);
+            final user = state.isSignUp
+                ? await ref
+                    .read(signUpWithEmailUseCaseProvider)
+                    .call(email: state.email, password: state.password)
+                : await ref
+                    .read(signInWithEmailUseCaseProvider)
+                    .call(email: state.email, password: state.password);
             ref.read(currentUserProvider.notifier).state = user;
+            final prepared = await ref
+                .read(createInviteCodeUseCaseProvider)
+                .call(currentUser: user);
+            ref.read(currentPairProvider.notifier).state = prepared;
             await controller.signIn(user);
+            await controller.preparePairing(prepared);
           } on AuthFailure catch (error) {
             controller.showAuthMessage(error.message);
           } catch (_) {
@@ -70,10 +82,16 @@ class OnboardingScreen extends ConsumerWidget {
         secondaryInputValue: state.password,
         onSecondaryChanged: controller.updatePassword,
         obscureSecondaryInput: true,
-        tertiaryInputLabel: 'Confirm password',
-        tertiaryInputValue: state.confirmPassword,
-        onTertiaryChanged: controller.updateConfirmPassword,
+        tertiaryInputLabel: state.isSignUp ? 'Confirm password' : null,
+        tertiaryInputValue: state.isSignUp ? state.confirmPassword : null,
+        onTertiaryChanged: state.isSignUp ? controller.updateConfirmPassword : null,
         obscureTertiaryInput: true,
+        tertiaryActionLabel: state.isSignUp
+            ? 'Already have an account? Sign in'
+            : 'Need an account? Sign up',
+        onTertiaryAction: state.isSignUp
+            ? controller.showSignIn
+            : controller.showSignUp,
       ),
       OnboardingStep.pairing => _OnboardingContent(
         eyebrow: 'Pairing',
@@ -172,135 +190,154 @@ class OnboardingScreen extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(content.eyebrow, style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 16),
-              Text(content.title, style: theme.textTheme.headlineMedium),
-              const SizedBox(height: 16),
-              Text(content.body, style: theme.textTheme.bodyLarge),
-              if (content.detail case final detail?) ...[
-                const SizedBox(height: 24),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Text(detail, style: theme.textTheme.titleMedium),
-                  ),
-                ),
-              ],
-              if (state.authMessage case final authMessage?) ...[
-                const SizedBox(height: 16),
-                Text(authMessage, style: theme.textTheme.bodyMedium),
-              ],
-              if (content.inputLabel case final inputLabel?) ...[
-                const SizedBox(height: 16),
-                TextField(
-                  onChanged: content.onChanged,
-                  controller: TextEditingController.fromValue(
-                    TextEditingValue(
-                      text: content.inputValue ?? '',
-                      selection: TextSelection.collapsed(
-                        offset: (content.inputValue ?? '').length,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(content.eyebrow, style: theme.textTheme.bodyMedium),
+                      const SizedBox(height: 16),
+                      Text(content.title, style: theme.textTheme.headlineMedium),
+                      const SizedBox(height: 16),
+                      Text(content.body, style: theme.textTheme.bodyLarge),
+                      if (content.detail case final detail?) ...[
+                        const SizedBox(height: 24),
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Text(detail, style: theme.textTheme.titleMedium),
+                          ),
+                        ),
+                      ],
+                      if (state.authMessage case final authMessage?) ...[
+                        const SizedBox(height: 16),
+                        Text(authMessage, style: theme.textTheme.bodyMedium),
+                      ],
+                      if (content.inputLabel case final inputLabel?) ...[
+                        const SizedBox(height: 16),
+                        TextField(
+                          onChanged: content.onChanged,
+                          controller: TextEditingController.fromValue(
+                            TextEditingValue(
+                              text: content.inputValue ?? '',
+                              selection: TextSelection.collapsed(
+                                offset: (content.inputValue ?? '').length,
+                              ),
+                            ),
+                          ),
+                          keyboardType: state.step == OnboardingStep.account
+                              ? TextInputType.emailAddress
+                              : TextInputType.text,
+                          autocorrect: false,
+                          enableSuggestions: state.step != OnboardingStep.account,
+                          textCapitalization: state.step == OnboardingStep.account
+                              ? TextCapitalization.none
+                              : TextCapitalization.characters,
+                          decoration: InputDecoration(
+                            labelText: inputLabel,
+                            hintText: state.step == OnboardingStep.account
+                                ? 'name@example.com'
+                                : 'Enter their code',
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                      if (content.secondaryInputLabel case final secondaryInputLabel?) ...[
+                        const SizedBox(height: 16),
+                        TextField(
+                          onChanged: content.onSecondaryChanged,
+                          controller: TextEditingController.fromValue(
+                            TextEditingValue(
+                              text: content.secondaryInputValue ?? '',
+                              selection: TextSelection.collapsed(
+                                offset: (content.secondaryInputValue ?? '').length,
+                              ),
+                            ),
+                          ),
+                          obscureText: content.obscureSecondaryInput,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          decoration: InputDecoration(
+                            labelText: secondaryInputLabel,
+                            hintText: 'At least 6 characters',
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                      if (content.tertiaryInputLabel case final tertiaryInputLabel?) ...[
+                        const SizedBox(height: 16),
+                        TextField(
+                          onChanged: content.onTertiaryChanged,
+                          controller: TextEditingController.fromValue(
+                            TextEditingValue(
+                              text: content.tertiaryInputValue ?? '',
+                              selection: TextSelection.collapsed(
+                                offset: (content.tertiaryInputValue ?? '').length,
+                              ),
+                            ),
+                          ),
+                          obscureText: content.obscureTertiaryInput,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          decoration: InputDecoration(
+                            labelText: tertiaryInputLabel,
+                            hintText: 'Repeat your password',
+                            border: const OutlineInputBorder(),
+                          ),
+                        ),
+                      ],
+                      if (content.tertiaryActionLabel case final tertiaryActionLabel?) ...[
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: state.isWorking ? null : content.onTertiaryAction,
+                            child: Text(tertiaryActionLabel),
+                          ),
+                        ),
+                      ],
+                      const Spacer(),
+                      if (state.step == OnboardingStep.pairing) ...[
+                        Text(
+                          'Either side can cancel at any time.',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: state.isWorking ? null : content.onPrimary,
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                          ),
+                          child: Text(content.primaryLabel),
+                        ),
                       ),
-                    ),
+                      if (content.secondaryLabel case final secondaryLabel?) ...[
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: state.isWorking ? null : content.onSecondary,
+                            child: Text(secondaryLabel),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  keyboardType: state.step == OnboardingStep.account
-                      ? TextInputType.emailAddress
-                      : TextInputType.text,
-                  autocorrect: false,
-                  enableSuggestions: state.step != OnboardingStep.account,
-                  textCapitalization: state.step == OnboardingStep.account
-                      ? TextCapitalization.none
-                      : TextCapitalization.characters,
-                  decoration: InputDecoration(
-                    labelText: inputLabel,
-                    hintText: state.step == OnboardingStep.account
-                        ? 'name@example.com'
-                        : 'Enter their code',
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-              if (content.secondaryInputLabel case final secondaryInputLabel?) ...[
-                const SizedBox(height: 16),
-                TextField(
-                  onChanged: content.onSecondaryChanged,
-                  controller: TextEditingController.fromValue(
-                    TextEditingValue(
-                      text: content.secondaryInputValue ?? '',
-                      selection: TextSelection.collapsed(
-                        offset: (content.secondaryInputValue ?? '').length,
-                      ),
-                    ),
-                  ),
-                  obscureText: content.obscureSecondaryInput,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: secondaryInputLabel,
-                    hintText: 'At least 6 characters',
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-              if (content.tertiaryInputLabel case final tertiaryInputLabel?) ...[
-                const SizedBox(height: 16),
-                TextField(
-                  onChanged: content.onTertiaryChanged,
-                  controller: TextEditingController.fromValue(
-                    TextEditingValue(
-                      text: content.tertiaryInputValue ?? '',
-                      selection: TextSelection.collapsed(
-                        offset: (content.tertiaryInputValue ?? '').length,
-                      ),
-                    ),
-                  ),
-                  obscureText: content.obscureTertiaryInput,
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  decoration: InputDecoration(
-                    labelText: tertiaryInputLabel,
-                    hintText: 'Repeat your password',
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-              ],
-              const Spacer(),
-              if (state.step == OnboardingStep.pairing) ...[
-                Text(
-                  'Either side can cancel at any time.',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 12),
-              ],
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: state.isWorking ? null : content.onPrimary,
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Text(content.primaryLabel),
                 ),
               ),
-              if (content.secondaryLabel case final secondaryLabel?) ...[
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: state.isWorking ? null : content.onSecondary,
-                    child: Text(secondaryLabel),
-                  ),
-                ),
-              ],
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -328,6 +365,8 @@ class _OnboardingContent {
     this.tertiaryInputValue,
     this.onTertiaryChanged,
     this.obscureTertiaryInput = false,
+    this.tertiaryActionLabel,
+    this.onTertiaryAction,
   });
 
   final String eyebrow;
@@ -349,4 +388,6 @@ class _OnboardingContent {
   final String? tertiaryInputValue;
   final ValueChanged<String>? onTertiaryChanged;
   final bool obscureTertiaryInput;
+  final String? tertiaryActionLabel;
+  final VoidCallback? onTertiaryAction;
 }

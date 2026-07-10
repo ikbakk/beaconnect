@@ -30,13 +30,57 @@ class FirebaseAuthRepository implements AuthRepository {
     required String password,
   }) async {
     final normalizedEmail = email.trim().toLowerCase();
-    final credential = await _signInOrCreate(
-      email: normalizedEmail,
-      password: password,
-    );
+
+    try {
+      final credential = await _firebaseAuth.signInWithEmailAndPassword(
+        email: normalizedEmail,
+        password: password,
+      );
+      return _userFromCredential(credential, normalizedEmail);
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      throw _mapAuthError(error);
+    }
+  }
+
+  @override
+  Future<AppUser> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+
+    try {
+      final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: normalizedEmail,
+        password: password,
+      );
+      return _userFromCredential(credential, normalizedEmail);
+    } on firebase_auth.FirebaseAuthException catch (error) {
+      if (error.code == 'email-already-in-use') {
+        try {
+          final credential = await _firebaseAuth.signInWithEmailAndPassword(
+            email: normalizedEmail,
+            password: password,
+          );
+          return _userFromCredential(credential, normalizedEmail);
+        } on firebase_auth.FirebaseAuthException catch (signInError) {
+          throw _mapAuthError(signInError);
+        }
+      }
+
+      throw _mapAuthError(error);
+    }
+  }
+
+  Future<AppUser> _userFromCredential(
+    firebase_auth.UserCredential credential,
+    String normalizedEmail,
+  ) async {
     final user = credential.user;
     if (user == null) {
-      throw const AuthFailure('We could not finish signing you in just yet. Please try again.');
+      throw const AuthFailure(
+        'We could not finish signing you in just yet. Please try again.',
+      );
     }
 
     final displayName = user.displayName ?? _displayNameFromEmail(normalizedEmail);
@@ -48,31 +92,6 @@ class FirebaseAuthRepository implements AuthRepository {
       id: user.uid,
       displayName: displayName,
     );
-  }
-
-  Future<firebase_auth.UserCredential> _signInOrCreate({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      return await _firebaseAuth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-    } on firebase_auth.FirebaseAuthException catch (error) {
-      if (error.code == 'user-not-found' || error.code == 'invalid-credential') {
-        try {
-          return await _firebaseAuth.createUserWithEmailAndPassword(
-            email: email,
-            password: password,
-          );
-        } on firebase_auth.FirebaseAuthException catch (createError) {
-          throw _mapAuthError(createError);
-        }
-      }
-
-      throw _mapAuthError(error);
-    }
   }
 
   AuthFailure _mapAuthError(firebase_auth.FirebaseAuthException error) {

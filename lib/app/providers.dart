@@ -11,6 +11,7 @@ import '../core/permissions/domain/permission_repository.dart';
 import '../core/permissions/domain/permission_status.dart';
 import '../features/auth/application/load_current_user_use_case.dart';
 import '../features/auth/application/sign_in_with_email_use_case.dart';
+import '../features/auth/application/sign_up_with_email_use_case.dart';
 import '../features/auth/data/firebase_auth_repository.dart';
 import '../features/auth/data/local_auth_repository.dart';
 import '../features/auth/domain/app_user.dart';
@@ -152,6 +153,9 @@ final loadCurrentUserUseCaseProvider = Provider<LoadCurrentUserUseCase>(
 );
 final signInWithEmailUseCaseProvider = Provider<SignInWithEmailUseCase>(
   (ref) => SignInWithEmailUseCase(ref.watch(authRepositoryProvider)),
+);
+final signUpWithEmailUseCaseProvider = Provider<SignUpWithEmailUseCase>(
+  (ref) => SignUpWithEmailUseCase(ref.watch(authRepositoryProvider)),
 );
 final loadCurrentPairUseCaseProvider = Provider<LoadCurrentPairUseCase>(
   (ref) => LoadCurrentPairUseCase(ref.watch(pairingRepositoryProvider)),

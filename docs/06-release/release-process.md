@@ -17,6 +17,29 @@ Use Firebase App Distribution.
 - [ ] Version bumped
 - [ ] Build uploaded to App Distribution
 
+## Release Commands
+
+```text
+flutter pub get
+flutter analyze
+flutter test
+flutter build apk --release
+```
+
+## CI Support
+
+GitHub Actions workflow:
+
+```text
+.github/workflows/android-release-checks.yml
+```
+
+This workflow runs:
+
+- analyze
+- tests
+- release APK build
+
 ## Changelog Style
 
 Human, not technical.

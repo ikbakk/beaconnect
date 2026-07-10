@@ -25,13 +25,16 @@ class SendCheckInUseCase {
     final now = DateTime.now();
 
     if (lastSentAt != null && now.difference(lastSentAt) < _cooldown) {
-      return const CheckInResult(wasSent: false, enteredCooldown: true);
+      return const CheckInResult(
+        wasSent: false,
+        enteredCooldown: true,
+        message: 'You recently checked in. Try again in a few minutes.',
+      );
     }
 
     final preferences = await _myBeaconRepository.getPreferences();
     final customMessage = preferences.checkInMessage.replaceAll('{partner}', partnerName);
 
-    await _repository.saveLastCheckInAt(now);
     await _addUpdateUseCase(
       UpdateStory(
         timeGroup: 'Just now',
@@ -40,7 +43,12 @@ class SendCheckInUseCase {
         place: 'Current place',
       ),
     );
+    await _repository.saveLastCheckInAt(now);
 
-    return const CheckInResult(wasSent: true, enteredCooldown: false);
+    return CheckInResult(
+      wasSent: true,
+      enteredCooldown: false,
+      message: '$partnerName now knows you\'re around.',
+    );
   }
 }

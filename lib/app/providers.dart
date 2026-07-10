@@ -110,10 +110,10 @@ final permissionRepositoryProvider = Provider<PermissionRepository>(
 
 final checkInRepositoryProvider = Provider<CheckInRepository>((ref) {
   final config = ref.watch(appConfigProvider);
-  final pairId = ref.watch(currentPairProvider)?.id;
+  final currentUserId = ref.watch(currentUserProvider)?.id;
   return switch (config.dataSource) {
     AppDataSource.local => LocalCheckInRepository(ref.watch(sharedPreferencesProvider)),
-    AppDataSource.firebase => FirebaseCheckInRepository(pairId: pairId),
+    AppDataSource.firebase => FirebaseCheckInRepository(currentUserId: currentUserId),
   };
 });
 

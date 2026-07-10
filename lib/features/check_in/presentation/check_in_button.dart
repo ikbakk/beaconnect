@@ -13,9 +13,10 @@ class CheckInButton extends ConsumerWidget {
     final controller = ref.read(checkInControllerProvider.notifier);
 
     final label = switch (state.status) {
-      CheckInStatus.sending => 'Letting Sarah know…',
-      CheckInStatus.success => 'Sarah now knows you\'re around.',
+      CheckInStatus.sending => 'Letting ${state.partnerName} know…',
+      CheckInStatus.success => '${state.partnerName} now knows you\'re around.',
       CheckInStatus.cooldown => 'You recently checked in.',
+      CheckInStatus.unavailable => "I'm Okay",
       CheckInStatus.idle => "I'm Okay",
     };
 
@@ -27,15 +28,13 @@ class CheckInButton extends ConsumerWidget {
               if (!context.mounted) {
                 return;
               }
-              final nextStatus = ref.read(checkInControllerProvider).status;
-              final message = switch (nextStatus) {
-                CheckInStatus.cooldown =>
-                  'You can check in again in a few minutes.',
-                _ => 'Sarah now knows you\'re around.',
-              };
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(message)),
-              );
+              final nextState = ref.read(checkInControllerProvider);
+              final message = nextState.message;
+              if (message != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              }
               controller.reset();
             },
       style: FilledButton.styleFrom(

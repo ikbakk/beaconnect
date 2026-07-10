@@ -11,16 +11,22 @@ final checkInControllerProvider =
 
 @immutable
 class CheckInState {
-  const CheckInState({required this.status});
+  const CheckInState({
+    required this.status,
+    required this.partnerName,
+    this.message,
+  });
 
   final CheckInStatus status;
+  final String partnerName;
+  final String? message;
 
   bool get isBusy => status == CheckInStatus.sending;
 }
 
 class CheckInController extends StateNotifier<CheckInState> {
   CheckInController(this._ref)
-    : super(const CheckInState(status: CheckInStatus.idle));
+    : super(const CheckInState(status: CheckInStatus.idle, partnerName: 'your partner'));
 
   final Ref _ref;
 
@@ -34,11 +40,18 @@ class CheckInController extends StateNotifier<CheckInState> {
     final currentPair = session.currentPair;
 
     if (currentUser == null || currentPair == null) {
-      state = const CheckInState(status: CheckInStatus.cooldown);
+      state = const CheckInState(
+        status: CheckInStatus.unavailable,
+        partnerName: 'your partner',
+        message: 'Check-ins work best after you pair first.',
+      );
       return;
     }
 
-    state = const CheckInState(status: CheckInStatus.sending);
+    state = CheckInState(
+      status: CheckInStatus.sending,
+      partnerName: currentPair.partnerDisplayName,
+    );
     final result = await _ref.read(sendCheckInUseCaseProvider).call(
       senderName: currentUser.displayName,
       partnerName: currentPair.partnerDisplayName,
@@ -47,14 +60,22 @@ class CheckInController extends StateNotifier<CheckInState> {
     _ref.invalidate(homeSnapshotProvider);
 
     if (result.enteredCooldown) {
-      state = const CheckInState(status: CheckInStatus.cooldown);
+      state = CheckInState(
+        status: CheckInStatus.cooldown,
+        partnerName: currentPair.partnerDisplayName,
+        message: result.message,
+      );
       return;
     }
 
-    state = const CheckInState(status: CheckInStatus.success);
+    state = CheckInState(
+      status: CheckInStatus.success,
+      partnerName: currentPair.partnerDisplayName,
+      message: result.message,
+    );
   }
 
   void reset() {
-    state = const CheckInState(status: CheckInStatus.idle);
+    state = const CheckInState(status: CheckInStatus.idle, partnerName: 'your partner');
   }
 }

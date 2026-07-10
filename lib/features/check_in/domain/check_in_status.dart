@@ -3,4 +3,5 @@ enum CheckInStatus {
   sending,
   success,
   cooldown,
+  unavailable,
 }

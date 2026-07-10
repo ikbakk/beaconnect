@@ -50,7 +50,7 @@ class PlaceSnapshotController extends StateNotifier<PlaceSnapshotState> {
 
     state = PlaceSnapshotState(
       isCapturing: false,
-      lastMessage: 'Showing your most recent update.',
+      lastMessage: 'Showing your most recent update from ${snapshot.placeLabel}.',
       snapshot: snapshot,
     );
   }

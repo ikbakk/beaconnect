@@ -201,7 +201,10 @@ final getLatestPlaceSnapshotUseCaseProvider = Provider<GetLatestPlaceSnapshotUse
   (ref) => GetLatestPlaceSnapshotUseCase(ref.watch(placeSnapshotRepositoryProvider)),
 );
 final capturePlaceSnapshotUseCaseProvider = Provider<CapturePlaceSnapshotUseCase>(
-  (ref) => CapturePlaceSnapshotUseCase(ref.watch(placeSnapshotRepositoryProvider)),
+  (ref) => CapturePlaceSnapshotUseCase(
+    ref.watch(placeSnapshotRepositoryProvider),
+    ref.watch(addUpdateUseCaseProvider),
+  ),
 );
 final getBatterySaverEnabledUseCaseProvider = Provider<GetBatterySaverEnabledUseCase>(
   (ref) => GetBatterySaverEnabledUseCase(ref.watch(batterySaverRepositoryProvider)),

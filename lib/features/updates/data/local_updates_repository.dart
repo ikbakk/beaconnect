@@ -23,20 +23,7 @@ class LocalUpdatesRepository implements UpdatesRepository {
   Future<List<UpdateStory>> getUpdates() async {
     final raw = _preferences.getString(_updatesKey);
     if (raw == null || raw.isEmpty) {
-      return const [
-        UpdateStory(
-          timeGroup: 'Morning',
-          title: 'Checked in',
-          story: 'Sarah let you know she is around.',
-          place: 'Home',
-        ),
-        UpdateStory(
-          timeGroup: 'Earlier today',
-          title: 'Sharing live',
-          story: 'Sarah shared her current place for 18 minutes.',
-          place: 'Near Home',
-        ),
-      ];
+      return const [];
     }
 
     final decoded = jsonDecode(raw) as List<dynamic>;

@@ -31,8 +31,8 @@ class TrustCenterScreen extends ConsumerWidget {
             explain: 'Sharing is mutual. Live sharing is temporary. Check-ins are intentional.',
             status: batterySaver.when(
               data: (enabled) => enabled ? 'Battery Saver Mode is on' : 'Battery Saver Mode is off',
-              error: (_, _) => 'Status unavailable',
-              loading: () => 'Loading status…',
+              error: (_, _) => 'We will check again automatically.',
+              loading: () => 'Checking gently…',
             ),
             actionLabel: 'Toggle battery saver',
             onAction: () async {
@@ -43,14 +43,30 @@ class TrustCenterScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
           _SectionCard(
+            title: 'Privacy',
+            explain: 'What you share stays between the two people in the relationship.',
+            status: 'No public profiles. No public discovery.',
+            actionLabel: 'Protected by design',
+            onAction: () {},
+          ),
+          const SizedBox(height: 12),
+          _SectionCard(
+            title: 'History',
+            explain: 'Detailed history is kept short so the relationship stays more important than the record.',
+            status: 'Detailed history stays for 3 days.',
+            actionLabel: 'Kept short on purpose',
+            onAction: () {},
+          ),
+          const SizedBox(height: 12),
+          _SectionCard(
             title: 'Permissions',
             explain: 'Beaconnect explains why sharing helps before asking.',
             status: permissions.when(
               data: (value) => value.isReadyForSharing
                   ? 'Sharing is ready.'
                   : 'Sharing works best when permission is enabled.',
-              error: (_, _) => 'Status unavailable',
-              loading: () => 'Loading status…',
+              error: (_, _) => 'We will check again automatically.',
+              loading: () => 'Checking gently…',
             ),
             actionLabel: 'Review status',
             onAction: () {},

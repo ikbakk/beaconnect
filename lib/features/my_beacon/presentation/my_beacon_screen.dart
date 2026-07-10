@@ -101,14 +101,28 @@ class _MyBeaconScreenState extends ConsumerState<MyBeaconScreen> {
           );
         },
         error: (_, _) => Center(
-          child: Text(
-            'Something did not go as expected.',
-            style: theme.textTheme.bodyLarge,
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Your choices are not ready just yet.',
+                  style: theme.textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton(
+                  onPressed: () => ref.invalidate(myBeaconPreferencesProvider),
+                  child: const Text('Try again'),
+                ),
+              ],
+            ),
           ),
         ),
         loading: () => Center(
           child: Text(
-            'Showing your most recent update…',
+            'Loading your choices…',
             style: theme.textTheme.bodyMedium,
           ),
         ),

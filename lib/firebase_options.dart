@@ -2,8 +2,8 @@ import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
-/// Placeholder Firebase options for local development scaffolding.
-/// Replace these values with FlutterFire-generated values later.
+/// Firebase options generated from the real google-services.json.
+/// See android/app/google-services.json for the source of truth.
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
@@ -38,11 +38,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'placeholder-android-api-key',
-    appId: '1:000000000000:android:placeholder',
-    messagingSenderId: '000000000000',
-    projectId: 'beaconnect-placeholder',
-    storageBucket: 'beaconnect-placeholder.firebasestorage.app',
+    apiKey: 'AIzaSyBP7cW8tRtJAAFpFT7RR6ByLDIqI0Au_0w',
+    appId: '1:225817273796:android:a5a72e3a9c3eaba8b03091',
+    messagingSenderId: '225817273796',
+    projectId: 'beaconnect-8b8c8',
+    storageBucket: 'beaconnect-8b8c8.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

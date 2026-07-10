@@ -20,22 +20,7 @@ void main() {
   testWidgets('starts with the onboarding flow', (tester) async {
     final preferences = await SharedPreferences.getInstance();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(preferences),
-          bootstrapStateProvider.overrideWithValue(
-            const BootstrapState(
-              currentUser: null,
-              currentPair: null,
-              hasCompletedOnboarding: false,
-              latestPlaceSnapshot: null,
-            ),
-          ),
-        ],
-        child: const BeaconnectApp(),
-      ),
-    );
+    await _pumpApp(tester, preferences: preferences);
 
     expect(find.text('A quieter way to stay close.'), findsOneWidget);
     expect(find.text('Get started'), findsOneWidget);
@@ -44,97 +29,28 @@ void main() {
   testWidgets('can move through pairing into the home shell', (tester) async {
     final preferences = await SharedPreferences.getInstance();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(preferences),
-          bootstrapStateProvider.overrideWithValue(
-            const BootstrapState(
-              currentUser: null,
-              currentPair: null,
-              hasCompletedOnboarding: false,
-              latestPlaceSnapshot: null,
-            ),
-          ),
-        ],
-        child: const BeaconnectApp(),
-      ),
-    );
+    await _pumpApp(tester, preferences: preferences);
+    await _createAccountUntilPairing(tester);
 
-    await tester.tap(find.text('Get started'));
+    await tester.ensureVisible(find.text('Pair later'));
+    await tester.tap(find.text('Pair later'));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(0), 'iqbal@example.com');
-    await tester.enterText(find.byType(TextField).at(1), 'password123');
-    await tester.enterText(find.byType(TextField).at(2), 'password123');
-    await tester.tap(find.text('Sign in or create account'));
-    await tester.pumpAndSettle();
-    if (find.text('Continue').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue').first);
-      await tester.pumpAndSettle();
-    }
-    if (find.text('Continue').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue').first);
-      await tester.pumpAndSettle();
-    }
-    if (find.text('Looks good').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Looks good'));
-      await tester.pumpAndSettle();
-    }
-    if (find.text('Continue to home').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue to home'));
-      await tester.pumpAndSettle();
-    }
 
+    expect(find.text('Connections are always mutual.'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
   testWidgets('can join with a partner code', (tester) async {
-    SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          sharedPreferencesProvider.overrideWithValue(preferences),
-          bootstrapStateProvider.overrideWithValue(
-            const BootstrapState(
-              currentUser: null,
-              currentPair: null,
-              hasCompletedOnboarding: false,
-              latestPlaceSnapshot: null,
-            ),
-          ),
-        ],
-        child: const BeaconnectApp(),
-      ),
-    );
+    await _pumpApp(tester, preferences: preferences);
+    await _createAccountUntilPairing(tester);
 
+    await tester.enterText(find.byType(TextField).first, '482915');
+    await tester.ensureVisible(find.text('Continue'));
+    await tester.tap(find.text('Continue'));
     await tester.pumpAndSettle();
-    expect(find.text('Get started'), findsOneWidget);
-    await tester.tap(find.text('Get started'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(0), 'iqbal@example.com');
-    await tester.enterText(find.byType(TextField).at(1), 'password123');
-    await tester.enterText(find.byType(TextField).at(2), 'password123');
-    await tester.tap(find.text('Sign in or create account'));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byType(TextField).at(0), '482915');
-    if (find.text('Continue').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue').first);
-      await tester.pumpAndSettle();
-    }
-    if (find.text('Continue').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue').first);
-      await tester.pumpAndSettle();
-    }
-    if (find.text('Looks good').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Looks good'));
-      await tester.pumpAndSettle();
-    }
-    if (find.text('Continue to home').evaluate().isNotEmpty) {
-      await tester.tap(find.text('Continue to home'));
-      await tester.pumpAndSettle();
-    }
+    await _finishPairingFlow(tester);
 
     expect(tester.takeException(), isNull);
   });
@@ -178,4 +94,60 @@ void main() {
     expect(find.byType(MaterialApp), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+}
+
+Future<void> _pumpApp(
+  WidgetTester tester, {
+  required SharedPreferences preferences,
+}) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(preferences),
+        bootstrapStateProvider.overrideWithValue(
+          const BootstrapState(
+            currentUser: null,
+            currentPair: null,
+            hasCompletedOnboarding: false,
+            latestPlaceSnapshot: null,
+          ),
+        ),
+      ],
+      child: const BeaconnectApp(),
+    ),
+  );
+
+  await tester.pumpAndSettle();
+}
+
+Future<void> _createAccountUntilPairing(WidgetTester tester) async {
+  await tester.tap(find.text('Get started'));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byType(TextField).at(0), 'iqbal@example.com');
+  await tester.pump();
+  await tester.enterText(find.byType(TextField).at(1), 'password123');
+  await tester.pump();
+  await tester.tap(find.text('Need an account? Sign up'));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byType(TextField).at(2), 'password123');
+  await tester.pump();
+  await tester.tap(find.text('Create account'));
+  await tester.pumpAndSettle();
+}
+
+Future<void> _finishPairingFlow(WidgetTester tester) async {
+  await _tapIfVisible(tester, 'Continue');
+  await _tapIfVisible(tester, 'Looks good');
+  await _tapIfVisible(tester, 'Continue to home');
+}
+
+Future<void> _tapIfVisible(WidgetTester tester, String label) async {
+  final finder = find.text(label);
+  if (finder.evaluate().isEmpty) {
+    return;
+  }
+
+  await tester.ensureVisible(finder.first);
+  await tester.tap(finder.first);
+  await tester.pumpAndSettle();
 }

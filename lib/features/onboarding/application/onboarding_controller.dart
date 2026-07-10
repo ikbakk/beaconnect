@@ -17,6 +17,7 @@ class OnboardingState {
     required this.currentUser,
     required this.currentPair,
     required this.isWorking,
+    required this.isSignUp,
     required this.email,
     required this.password,
     required this.confirmPassword,
@@ -28,6 +29,7 @@ class OnboardingState {
   final AppUser? currentUser;
   final PairRecord? currentPair;
   final bool isWorking;
+  final bool isSignUp;
   final String email;
   final String password;
   final String confirmPassword;
@@ -43,6 +45,7 @@ class OnboardingState {
     AppUser? currentUser,
     PairRecord? currentPair,
     bool? isWorking,
+    bool? isSignUp,
     String? email,
     String? password,
     String? confirmPassword,
@@ -57,6 +60,7 @@ class OnboardingState {
       currentUser: clearUser ? null : currentUser ?? this.currentUser,
       currentPair: clearPair ? null : currentPair ?? this.currentPair,
       isWorking: isWorking ?? this.isWorking,
+      isSignUp: isSignUp ?? this.isSignUp,
       email: email ?? this.email,
       password: password ?? this.password,
       confirmPassword: confirmPassword ?? this.confirmPassword,
@@ -74,6 +78,7 @@ class OnboardingController extends StateNotifier<OnboardingState> {
           currentUser: null,
           currentPair: null,
           isWorking: false,
+          isSignUp: false,
           email: '',
           password: '',
           confirmPassword: '',
@@ -111,6 +116,8 @@ class OnboardingController extends StateNotifier<OnboardingState> {
     state = state.copyWith(
       currentPair: pair,
       isWorking: false,
+      enteredInviteCode: '',
+      clearAuthMessage: true,
     );
   }
 
@@ -118,7 +125,9 @@ class OnboardingController extends StateNotifier<OnboardingState> {
     state = state.copyWith(
       currentPair: pair,
       isWorking: false,
+      enteredInviteCode: '',
       step: OnboardingStep.permissions,
+      clearAuthMessage: true,
     );
   }
 
@@ -143,7 +152,22 @@ class OnboardingController extends StateNotifier<OnboardingState> {
   }
 
   void updateInviteCode(String value) {
-    state = state.copyWith(enteredInviteCode: value.trim());
+    state = state.copyWith(
+      enteredInviteCode: value.trim(),
+      clearAuthMessage: true,
+    );
+  }
+
+  void showSignIn() {
+    state = state.copyWith(
+      isSignUp: false,
+      confirmPassword: '',
+      clearAuthMessage: true,
+    );
+  }
+
+  void showSignUp() {
+    state = state.copyWith(isSignUp: true, clearAuthMessage: true);
   }
 
   void startWork() {

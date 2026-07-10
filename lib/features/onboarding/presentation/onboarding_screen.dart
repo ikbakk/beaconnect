@@ -6,6 +6,7 @@ import '../../../app/providers.dart';
 import '../../auth/domain/auth_failure.dart';
 import '../application/onboarding_controller.dart';
 import '../domain/onboarding_step.dart';
+import '../../pairing/domain/pairing_failure.dart';
 
 class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
@@ -110,19 +111,26 @@ class OnboardingScreen extends ConsumerWidget {
             return;
           }
           controller.startWork();
-          String? inviteCode = state.enteredInviteCode;
-          if (inviteCode.isEmpty) {
-            final prepared = await ref
-                .read(createInviteCodeUseCaseProvider)
-                .call(currentUser: user);
-            inviteCode = prepared.inviteCode;
-            await controller.preparePairing(prepared);
+          try {
+            final inviteCode = state.enteredInviteCode;
+            if (inviteCode.isEmpty) {
+              controller.showAuthMessage(
+                'Enter your partner\'s code, or pair later for now.',
+              );
+              return;
+            }
+            final approved = await ref
+                .read(approvePairingUseCaseProvider)
+                .call(currentUser: user, inviteCode: inviteCode);
+            ref.read(currentPairProvider.notifier).state = approved;
+            await controller.approvePairing(approved);
+          } on PairingFailure catch (error) {
+            controller.showAuthMessage(error.message);
+          } catch (_) {
+            controller.showAuthMessage(
+              'Something did not go as expected. Please try again in a moment.',
+            );
           }
-          final approved = await ref
-              .read(approvePairingUseCaseProvider)
-              .call(currentUser: user, inviteCode: inviteCode);
-          ref.read(currentPairProvider.notifier).state = approved;
-          await controller.approvePairing(approved);
         },
         secondaryLabel: 'Pair later',
         onSecondary: () async {

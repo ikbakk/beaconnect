@@ -98,9 +98,13 @@ final pairingRepositoryProvider = Provider<PairingRepository>((ref) {
 final updatesRepositoryProvider = Provider<UpdatesRepository>((ref) {
   final config = ref.watch(appConfigProvider);
   final pairId = ref.watch(currentPairProvider)?.id;
+  final currentUserId = ref.watch(currentUserProvider)?.id;
   return switch (config.dataSource) {
     AppDataSource.local => LocalUpdatesRepository(ref.watch(sharedPreferencesProvider)),
-    AppDataSource.firebase => FirebaseUpdatesRepository(pairId: pairId),
+    AppDataSource.firebase => FirebaseUpdatesRepository(
+      pairId: pairId,
+      currentUserId: currentUserId,
+    ),
   };
 });
 

@@ -42,7 +42,11 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      allow read, write: if isSelf(userId);
+      allow read: if isSelf(userId);
+      allow create: if isSelf(userId);
+      allow update: if isSelf(userId)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
     }
 
     match /pairs/{pairId} {
@@ -58,12 +62,19 @@ service cloud.firestore {
     }
 
     match /pairs/{pairId}/events/{eventId} {
-      allow read, create: if isPairMember(pairId);
+      allow read: if isPairMember(pairId);
+      allow create: if isPairMember(pairId)
+        && request.resource.data.actorUserId == request.auth.uid
+        && request.resource.data.type is string
+        && request.resource.data.detail is string
+        && request.resource.data.placeLabel is string;
       allow update, delete: if false;
     }
 
     match /pairs/{pairId}/liveSessions/{sessionId} {
-      allow read, create, update: if isPairMember(pairId);
+      allow read: if isPairMember(pairId);
+      allow create, update: if isPairMember(pairId)
+        && request.resource.data.actorUserId == request.auth.uid;
       allow delete: if false;
     }
 
@@ -98,7 +109,13 @@ service cloud.firestore {
     }
 
     match /devices/{deviceId} {
-      allow read, write: if isSignedIn();
+      allow read: if isSignedIn() && resource.data.ownerUserId == request.auth.uid;
+      allow create: if isSignedIn()
+        && request.resource.data.ownerUserId == request.auth.uid;
+      allow update: if isSignedIn()
+        && resource.data.ownerUserId == request.auth.uid
+        && request.resource.data.ownerUserId == resource.data.ownerUserId;
+      allow delete: if false;
     }
   }
 }

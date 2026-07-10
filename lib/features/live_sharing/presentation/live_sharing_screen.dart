@@ -15,6 +15,14 @@ class _LiveSharingScreenState extends ConsumerState<LiveSharingScreen> {
   final _reasonController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(
+      () => ref.read(liveSharingControllerProvider.notifier).load(),
+    );
+  }
+
+  @override
   void dispose() {
     _reasonController.dispose();
     super.dispose();
@@ -26,6 +34,18 @@ class _LiveSharingScreenState extends ConsumerState<LiveSharingScreen> {
     final state = ref.watch(liveSharingControllerProvider);
     final controller = ref.read(liveSharingControllerProvider.notifier);
     final session = state.session;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final message = ref.read(liveSharingControllerProvider).message;
+      if (!mounted || message == null) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+      controller.clearMessage();
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('Start Live')),
@@ -60,11 +80,18 @@ class _LiveSharingScreenState extends ConsumerState<LiveSharingScreen> {
             ),
             const SizedBox(height: 24),
             if (session != null) ...[
-              Text('Sharing live.', style: theme.textTheme.titleMedium),
+              Text(
+                session.isPaused ? 'Sharing is currently paused.' : 'Sharing live.',
+                style: theme.textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
+              if (session.reason case final reason? when reason.isNotEmpty) ...[
+                Text(reason, style: theme.textTheme.bodyLarge),
+                const SizedBox(height: 8),
+              ],
               Text(
                 session.isPaused
-                    ? 'Live sharing is paused.'
+                    ? 'Resume whenever both of you are ready.'
                     : '${session.minutesRemaining} minutes remaining.',
                 style: theme.textTheme.bodyMedium,
               ),
@@ -73,8 +100,12 @@ class _LiveSharingScreenState extends ConsumerState<LiveSharingScreen> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: state.isWorking ? null : () => controller.pause(),
-                      child: const Text('Pause'),
+                      onPressed: state.isWorking
+                          ? null
+                          : session.isPaused
+                              ? () => controller.resume()
+                              : () => controller.pause(),
+                      child: Text(session.isPaused ? 'Resume' : 'Pause'),
                     ),
                   ),
                   const SizedBox(width: 12),

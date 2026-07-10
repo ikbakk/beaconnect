@@ -15,10 +15,12 @@ class LiveSharingState {
   const LiveSharingState({
     required this.session,
     required this.isWorking,
+    this.message,
   });
 
   final LiveSharingSession? session;
   final bool isWorking;
+  final String? message;
 }
 
 class LiveSharingController extends StateNotifier<LiveSharingState> {
@@ -26,6 +28,14 @@ class LiveSharingController extends StateNotifier<LiveSharingState> {
     : super(const LiveSharingState(session: null, isWorking: false));
 
   final Ref _ref;
+
+  Future<void> load() async {
+    final session = await _ref.read(liveSharingRepositoryProvider).getCurrentSession();
+    state = LiveSharingState(
+      session: session,
+      isWorking: false,
+    );
+  }
 
   Future<void> start({required int minutes, String? reason}) async {
     state = LiveSharingState(session: state.session, isWorking: true);
@@ -44,7 +54,11 @@ class LiveSharingController extends StateNotifier<LiveSharingState> {
     );
     _ref.invalidate(homeSnapshotProvider);
     _ref.invalidate(updatesProvider);
-    state = LiveSharingState(session: session, isWorking: false);
+    state = LiveSharingState(
+      session: session,
+      isWorking: false,
+      message: 'Your current place is being shared for now.',
+    );
   }
 
   Future<void> pause() async {
@@ -60,7 +74,35 @@ class LiveSharingController extends StateNotifier<LiveSharingState> {
     );
     _ref.invalidate(homeSnapshotProvider);
     _ref.invalidate(updatesProvider);
-    state = LiveSharingState(session: session, isWorking: false);
+    state = LiveSharingState(
+      session: session,
+      isWorking: false,
+      message: 'Sharing is paused for now.',
+    );
+  }
+
+  Future<void> resume() async {
+    state = LiveSharingState(session: state.session, isWorking: true);
+    final session = await _ref.read(liveSharingRepositoryProvider).resume();
+    if (session != null) {
+      await _ref.read(addUpdateUseCaseProvider).call(
+        UpdateStory(
+          timeGroup: 'Just now',
+          title: 'Sharing live',
+          story: session.reason == null || session.reason!.isEmpty
+              ? 'Live sharing resumed quietly.'
+              : 'Live sharing resumed. ${session.reason}',
+          place: 'Current place',
+        ),
+      );
+    }
+    _ref.invalidate(homeSnapshotProvider);
+    _ref.invalidate(updatesProvider);
+    state = LiveSharingState(
+      session: session,
+      isWorking: false,
+      message: session == null ? null : 'Sharing is live again.',
+    );
   }
 
   Future<void> end() async {
@@ -76,6 +118,17 @@ class LiveSharingController extends StateNotifier<LiveSharingState> {
     );
     _ref.invalidate(homeSnapshotProvider);
     _ref.invalidate(updatesProvider);
-    state = const LiveSharingState(session: null, isWorking: false);
+    state = const LiveSharingState(
+      session: null,
+      isWorking: false,
+      message: 'Sharing ended quietly.',
+    );
+  }
+
+  void clearMessage() {
+    state = LiveSharingState(
+      session: state.session,
+      isWorking: state.isWorking,
+    );
   }
 }

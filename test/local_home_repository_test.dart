@@ -158,6 +158,11 @@ class _FakeLiveSharingRepository implements LiveSharingRepository {
   }
 
   @override
+  Future<LiveSharingSession?> resume() async {
+    return null;
+  }
+
+  @override
   Future<LiveSharingSession> start({required int minutes, String? reason}) {
     throw UnimplementedError();
   }

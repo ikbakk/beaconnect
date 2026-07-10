@@ -14,26 +14,28 @@ This repository is intentionally documentation-first. The goal is to preserve th
 | M1 | Experience Design | Frozen |
 | M2 | Interface Design | Frozen |
 | M3 | Technical Architecture | Frozen |
-| M4 | Engineering Execution | In Progress |
+| M4 | Engineering Execution | Done |
+| M5 | Vertical Slice | Done |
+| M6 | Internal Alpha | In Progress |
 
 ## Scaffold Status
 
-Implemented in scaffold form:
+All seven vertical slices are implemented and functional.
 
-- Slice 1 — First Reassurance
-- Slice 2 — Real Place Snapshot
-- Slice 3 — Widget preview
-- Slice 4 — Battery Saver Mode
-- Slice 5 — Live Sharing
-- Slice 6 — Trust Center + My Beacon
-- Slice 7 — Polish
+- Slice 1 — First Reassurance ✅
+- Slice 2 — Real Place Snapshot ✅
+- Slice 3 — Widget preview ✅
+- Slice 4 — Battery Saver Mode ✅
+- Slice 5 — Live Sharing ✅
+- Slice 6 — Trust Center + My Beacon ✅
+- Slice 7 — Polish ✅
 
-Still to harden:
+Hardenings completed:
 
-- real Firebase credentials and generated options
-- production-grade Firebase transactions and rules
-- platform widget plumbing
-- release/distribution setup
+- real Firebase credentials and generated options ✅
+- production-grade Firebase transactions and rules ✅
+- platform widget plumbing ✅
+- release/distribution setup ⚠ in progress
 
 ## North Star
 

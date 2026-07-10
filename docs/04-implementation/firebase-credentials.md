@@ -1,15 +1,18 @@
 # Firebase Credentials Setup
 
-This project currently includes **placeholders only**.
+## Status
 
-## Put real Firebase files here
+- `lib/firebase_options.dart` — real Android values, projectId/storageBucket shared across all platforms
+- `android/app/google-services.json` — real config in place (gitignored)
+
+Non-Android platform app IDs still use placeholders (only Android is fully configured).
+
+## Where real files live
 
 ### Android
 
-Save the real Firebase Android config as:
-
 ```text
-android/app/google-services.json
+android/app/google-services.json  (gitignored)
 ```
 
 A placeholder example exists at:
@@ -20,34 +23,21 @@ android/app/google-services.json.example
 
 ### FlutterFire options
 
-Generate and save FlutterFire options as:
-
 ```text
 lib/firebase_options.dart
 ```
 
-The current `lib/firebase_options.dart` is a placeholder scaffold and should be replaced.
+The Android block is real. Non-Android blocks (iOS, web, macOS, windows, linux) have real `projectId`, `storageBucket`, and `messagingSenderId` but placeholder `apiKey` and `appId` until those apps are created in Firebase console.
 
-## Recommended command later
+## Recommended command
 
-After creating the Firebase project and Android app, run FlutterFire CLI and generate real options for this app package:
+To add more platforms, run FlutterFire CLI for this app package:
 
 ```text
 com.beaconnect.beaconnect
 ```
 
-Then replace:
-
-- `lib/firebase_options.dart`
-- `android/app/google-services.json`
-
-## Current Firebase mode toggle
-
-Run with:
-
-```bash
-flutter run --dart-define=USE_FIREBASE=true
-```
+Then replace the placeholder blocks in `lib/firebase_options.dart`.
 
 ## Important
 

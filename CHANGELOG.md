@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.2.0 — 2026-07-10
+
+### What's New
+- Added Crashlytics integration for crash reporting.
+- Real Firebase project wired (beaconnect-8b8c8).
+- Android home-screen widget with partner status at a glance.
+
+### Improvements
+- Home screen, check-in, trust center, and live sharing now include screen-reader labels.
+- Reduced motion respected for accessibility.
+- Calmer empty and error states across Updates, My Beacon, and Trust Center.
+- CI workflow now runs analyze, test, and release APK build on push.
+
+### Fixes
+- Sign in and sign up are now explicit flows with clear error messaging.
+- Pairing lifecycle tightened: one-time codes expire, self-use rejected, pending invites reused.
+- Check-in no longer shows success until confirmed delivery.
+- Home no longer invents placeholder updates in a fresh state.
+- Firebase updates now use the real signed-in user ID.
+- Firestore rules locked down for users, events, live sessions, devices.
+- Release signing config placeholder noted (still debug for now).
+
+### Notes for Testers
+- Crashlytics will report crashes in production builds.
+- App Distribution setup still pending in Firebase console.
+- Invite codes expire server-side only when Cloud Functions are deployed.
+
+### Known Issues
+- Only Android Firebase config is real; iOS and web still use placeholder app IDs.
+- No geolocator integration yet — place snapshots use manual labels.
+- Golden tests not yet added.
+
 ## 0.1.0 — 2026-07-10
 
 ### What's New

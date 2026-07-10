@@ -31,10 +31,10 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'placeholder-web-api-key',
     appId: '1:000000000000:web:placeholder',
-    messagingSenderId: '000000000000',
-    projectId: 'beaconnect-placeholder',
-    authDomain: 'beaconnect-placeholder.firebaseapp.com',
-    storageBucket: 'beaconnect-placeholder.firebasestorage.app',
+    messagingSenderId: '225817273796',
+    projectId: 'beaconnect-8b8c8',
+    authDomain: 'beaconnect-8b8c8.firebaseapp.com',
+    storageBucket: 'beaconnect-8b8c8.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
@@ -48,34 +48,34 @@ class DefaultFirebaseOptions {
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'placeholder-ios-api-key',
     appId: '1:000000000000:ios:placeholder',
-    messagingSenderId: '000000000000',
-    projectId: 'beaconnect-placeholder',
-    storageBucket: 'beaconnect-placeholder.firebasestorage.app',
+    messagingSenderId: '225817273796',
+    projectId: 'beaconnect-8b8c8',
+    storageBucket: 'beaconnect-8b8c8.firebasestorage.app',
     iosBundleId: 'com.beaconnect.beaconnect',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'placeholder-macos-api-key',
     appId: '1:000000000000:macos:placeholder',
-    messagingSenderId: '000000000000',
-    projectId: 'beaconnect-placeholder',
-    storageBucket: 'beaconnect-placeholder.firebasestorage.app',
+    messagingSenderId: '225817273796',
+    projectId: 'beaconnect-8b8c8',
+    storageBucket: 'beaconnect-8b8c8.firebasestorage.app',
     iosBundleId: 'com.beaconnect.beaconnect',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'placeholder-windows-api-key',
     appId: '1:000000000000:windows:placeholder',
-    messagingSenderId: '000000000000',
-    projectId: 'beaconnect-placeholder',
-    storageBucket: 'beaconnect-placeholder.firebasestorage.app',
+    messagingSenderId: '225817273796',
+    projectId: 'beaconnect-8b8c8',
+    storageBucket: 'beaconnect-8b8c8.firebasestorage.app',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
     apiKey: 'placeholder-linux-api-key',
     appId: '1:000000000000:linux:placeholder',
-    messagingSenderId: '000000000000',
-    projectId: 'beaconnect-placeholder',
-    storageBucket: 'beaconnect-placeholder.firebasestorage.app',
+    messagingSenderId: '225817273796',
+    projectId: 'beaconnect-8b8c8',
+    storageBucket: 'beaconnect-8b8c8.firebasestorage.app',
   );
 }

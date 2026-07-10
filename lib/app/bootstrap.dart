@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,6 +36,8 @@ Future<void> bootstrap() async {
         );
       }
     }
+
+    await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
   }
 
   final authRepository = switch (appConfig.dataSource) {

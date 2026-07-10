@@ -109,20 +109,23 @@ class _SectionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(explain, style: theme.textTheme.bodyLarge),
-            const SizedBox(height: 8),
-            Text(status, style: theme.textTheme.bodyMedium),
-            const SizedBox(height: 12),
-            OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
-          ],
+    return Semantics(
+      label: '$title, $status',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: theme.textTheme.titleMedium),
+              const SizedBox(height: 8),
+              Text(explain, style: theme.textTheme.bodyLarge),
+              const SizedBox(height: 8),
+              Text(status, style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 12),
+              OutlinedButton(onPressed: onAction, child: Text(actionLabel)),
+            ],
+          ),
         ),
       ),
     );

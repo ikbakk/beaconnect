@@ -13,20 +13,23 @@ class RequestCheckInButton extends ConsumerWidget {
     final state = ref.watch(requestCheckInControllerProvider);
     final controller = ref.read(requestCheckInControllerProvider.notifier);
 
-    return OutlinedButton(
-      onPressed: !enabled || state.isSending
-          ? null
-          : () async {
-              await controller.send();
-              final message = ref.read(requestCheckInControllerProvider).lastMessage;
-              if (context.mounted && message != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
-                );
-              }
-              controller.clearMessage();
-            },
-      child: const Text('Request Check-in'),
+    return Semantics(
+      label: 'Request a check-in from your partner',
+      child: OutlinedButton(
+        onPressed: !enabled || state.isSending
+            ? null
+            : () async {
+                await controller.send();
+                final message = ref.read(requestCheckInControllerProvider).lastMessage;
+                if (context.mounted && message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+                controller.clearMessage();
+              },
+        child: const Text('Request Check-in'),
+      ),
     );
   }
 }

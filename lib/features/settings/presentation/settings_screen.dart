@@ -16,12 +16,14 @@ class SettingsScreen extends StatelessWidget {
           _SettingsEntry(
             title: 'Trust Center',
             subtitle: 'Explain, status, action.',
+            semanticsLabel: 'Open trust center',
             onTap: () => context.go('/trust-center'),
           ),
           const SizedBox(height: 12),
           _SettingsEntry(
             title: 'My Beacon',
             subtitle: 'Check-in messages, pair symbol, and more.',
+            semanticsLabel: 'Open my beacon settings',
             onTap: () => context.go('/my-beacon'),
           ),
           const SizedBox(height: 12),
@@ -44,23 +46,28 @@ class _SettingsEntry extends StatelessWidget {
   const _SettingsEntry({
     required this.title,
     required this.subtitle,
+    required this.semanticsLabel,
     required this.onTap,
   });
 
   final String title;
   final String subtitle;
+  final String semanticsLabel;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      child: ListTile(
-        title: Text(title, style: theme.textTheme.titleMedium),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
+    return Semantics(
+      label: semanticsLabel,
+      child: Card(
+        child: ListTile(
+          title: Text(title, style: theme.textTheme.titleMedium),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: onTap,
+        ),
       ),
     );
   }

@@ -56,18 +56,21 @@ class _LiveSharingScreenState extends ConsumerState<LiveSharingScreen> {
           children: [
             Text('Choose a duration', style: theme.textTheme.titleMedium),
             const SizedBox(height: 12),
-            SegmentedButton<int>(
-              segments: const [
-                ButtonSegment(value: 15, label: Text('15m')),
-                ButtonSegment(value: 30, label: Text('30m')),
-                ButtonSegment(value: 60, label: Text('60m')),
-              ],
-              selected: {_minutes},
-              onSelectionChanged: (values) {
-                setState(() {
-                  _minutes = values.first;
-                });
-              },
+            Semantics(
+              label: 'Select sharing duration',
+              child: SegmentedButton<int>(
+                segments: const [
+                  ButtonSegment(value: 15, label: Text('15m')),
+                  ButtonSegment(value: 30, label: Text('30m')),
+                  ButtonSegment(value: 60, label: Text('60m')),
+                ],
+                selected: {_minutes},
+                onSelectionChanged: (values) {
+                  setState(() {
+                    _minutes = values.first;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 20),
             TextField(
@@ -99,35 +102,44 @@ class _LiveSharingScreenState extends ConsumerState<LiveSharingScreen> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: state.isWorking
-                          ? null
-                          : session.isPaused
-                              ? () => controller.resume()
-                              : () => controller.pause(),
-                      child: Text(session.isPaused ? 'Resume' : 'Pause'),
+                    child: Semantics(
+                      label: session.isPaused ? 'Resume sharing' : 'Pause sharing',
+                      child: OutlinedButton(
+                        onPressed: state.isWorking
+                            ? null
+                            : session.isPaused
+                                ? () => controller.resume()
+                                : () => controller.pause(),
+                        child: Text(session.isPaused ? 'Resume' : 'Pause'),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: FilledButton(
-                      onPressed: state.isWorking ? null : () => controller.end(),
-                      child: const Text('End'),
+                    child: Semantics(
+                      label: 'End sharing',
+                      child: FilledButton(
+                        onPressed: state.isWorking ? null : () => controller.end(),
+                        child: const Text('End'),
+                      ),
                     ),
                   ),
                 ],
               ),
             ] else
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: state.isWorking
-                      ? null
-                      : () => controller.start(
-                            minutes: _minutes,
-                            reason: _reasonController.text.trim(),
-                          ),
-                  child: const Text('Start'),
+              Semantics(
+                label: 'Start sharing for $_minutes minutes',
+                child: SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: state.isWorking
+                        ? null
+                        : () => controller.start(
+                              minutes: _minutes,
+                              reason: _reasonController.text.trim(),
+                            ),
+                    child: const Text('Start'),
+                  ),
                 ),
               ),
           ],

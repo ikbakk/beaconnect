@@ -42,11 +42,14 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: home.variant == HomeStateVariant.noPartner
-                          ? null
-                          : () => context.go('/live-sharing'),
-                      child: const Text('Start Live'),
+                    child: Semantics(
+                      label: 'Start live sharing',
+                      child: OutlinedButton(
+                        onPressed: home.variant == HomeStateVariant.noPartner
+                            ? null
+                            : () => context.go('/live-sharing'),
+                        child: const Text('Start Live'),
+                      ),
                     ),
                   ),
                 ],
@@ -56,9 +59,12 @@ class HomeScreen extends ConsumerWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Recent updates', style: theme.textTheme.titleMedium),
-                  TextButton(
-                    onPressed: () => context.go('/updates'),
-                    child: const Text('View all'),
+                  Semantics(
+                    label: 'View all updates',
+                    child: TextButton(
+                      onPressed: () => context.go('/updates'),
+                      child: const Text('View all'),
+                    ),
                   ),
                 ],
               ),
@@ -99,24 +105,27 @@ class HomeScreen extends ConsumerWidget {
                         style: theme.textTheme.bodyMedium,
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: placeState.isCapturing
-                              ? null
-                              : () async {
-                                  await placeController.capture();
-                                  final message = ref
-                                      .read(placeSnapshotControllerProvider)
-                                      .lastMessage;
-                                  if (context.mounted && message != null) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text(message)),
-                                    );
-                                  }
-                                  placeController.clearMessage();
-                                },
-                          child: const Text('Update current place'),
+                      Semantics(
+                        label: 'Update current place',
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: placeState.isCapturing
+                                ? null
+                                : () async {
+                                    await placeController.capture();
+                                    final message = ref
+                                        .read(placeSnapshotControllerProvider)
+                                        .lastMessage;
+                                    if (context.mounted && message != null) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(message)),
+                                      );
+                                    }
+                                    placeController.clearMessage();
+                                  },
+                            child: const Text('Update current place'),
+                          ),
                         ),
                       ),
                     ],
@@ -127,16 +136,22 @@ class HomeScreen extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => context.go('/widget'),
-                      child: const Text('Widget preview'),
+                    child: Semantics(
+                      label: 'Widget preview',
+                      child: OutlinedButton(
+                        onPressed: () => context.go('/widget'),
+                        child: const Text('Widget preview'),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => context.go('/settings'),
-                      child: const Text('Settings'),
+                    child: Semantics(
+                      label: 'Settings and trust center',
+                      child: OutlinedButton(
+                        onPressed: () => context.go('/settings'),
+                        child: const Text('Settings'),
+                      ),
                     ),
                   ),
                 ],

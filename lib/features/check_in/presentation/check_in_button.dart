@@ -20,30 +20,33 @@ class CheckInButton extends ConsumerWidget {
       CheckInStatus.idle => "I'm Okay",
     };
 
-    return FilledButton(
-      onPressed: state.isBusy
-          ? null
-          : () async {
-              await controller.sendCheckIn();
-              if (!context.mounted) {
-                return;
-              }
-              final nextState = ref.read(checkInControllerProvider);
-              final message = nextState.message;
-              if (message != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(message)),
-                );
-              }
-              controller.reset();
-            },
-      style: FilledButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 20),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
+    return Semantics(
+      label: label,
+      child: FilledButton(
+        onPressed: state.isBusy
+            ? null
+            : () async {
+                await controller.sendCheckIn();
+                if (!context.mounted) {
+                  return;
+                }
+                final nextState = ref.read(checkInControllerProvider);
+                final message = nextState.message;
+                if (message != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(message)),
+                  );
+                }
+                controller.reset();
+              },
+        style: FilledButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
         ),
+        child: Text(label, textAlign: TextAlign.center),
       ),
-      child: Text(label, textAlign: TextAlign.center),
     );
   }
 }

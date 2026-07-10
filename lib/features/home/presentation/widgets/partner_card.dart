@@ -11,21 +11,24 @@ class PartnerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(summary.name, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 12),
-            Text(summary.statusSentence, style: theme.textTheme.bodyLarge),
-            const SizedBox(height: 8),
-            Text(
-              summary.freshnessSentence,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
+    return Semantics(
+      label: '${summary.name}, ${summary.statusSentence}. ${summary.freshnessSentence}',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(summary.name, style: theme.textTheme.titleLarge),
+              const SizedBox(height: 12),
+              Text(summary.statusSentence, style: theme.textTheme.bodyLarge),
+              const SizedBox(height: 8),
+              Text(
+                summary.freshnessSentence,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+          ),
         ),
       ),
     );

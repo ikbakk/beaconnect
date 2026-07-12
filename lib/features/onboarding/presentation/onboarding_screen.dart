@@ -172,7 +172,26 @@ class OnboardingScreen extends ConsumerWidget {
         body:
             '${state.partnerDisplayName} will confirm names before Beaconnect begins sharing updates.',
         primaryLabel: 'Looks good',
-        onPrimary: controller.next,
+        onPrimary: () async {
+          controller.startWork();
+          try {
+            final user = state.currentUser;
+            if (user == null) {
+              controller.showAuthMessage('Something did not go as expected. Please try again.');
+              return;
+            }
+            final confirmed = await ref
+                .read(confirmPairingUseCaseProvider)
+                .call(currentUser: user);
+            await controller.confirmPairing(confirmed);
+          } on PairingFailure catch (error) {
+            controller.showAuthMessage(error.message);
+          } catch (_) {
+            controller.showAuthMessage(
+              'Something did not go as expected. Please try again.',
+            );
+          }
+        },
         secondaryLabel: 'Back',
         onSecondary: controller.back,
       ),

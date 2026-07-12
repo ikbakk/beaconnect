@@ -131,6 +131,16 @@ class OnboardingController extends StateNotifier<OnboardingState> {
     );
   }
 
+  Future<void> confirmPairing(PairRecord pair) async {
+    state = state.copyWith(
+      currentPair: pair,
+      isWorking: false,
+      enteredInviteCode: '',
+      step: OnboardingStep.success,
+      clearAuthMessage: true,
+    );
+  }
+
   Future<void> skipPairing() async {
     state = state.copyWith(
       isWorking: false,

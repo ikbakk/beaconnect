@@ -8,5 +8,6 @@ abstract class PairingRepository {
     required AppUser currentUser,
     String? inviteCode,
   });
+  Future<PairRecord> confirmPairing({required AppUser currentUser});
   Future<void> skipPairing();
 }

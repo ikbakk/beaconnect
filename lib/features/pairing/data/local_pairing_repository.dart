@@ -105,6 +105,34 @@ class LocalPairingRepository implements PairingRepository {
   }
 
   @override
+  Future<PairRecord> confirmPairing({required AppUser currentUser}) async {
+    final pair = await getCurrentPair();
+    if (pair == null) {
+      throw const PairingFailure(
+        'There is nothing to confirm. Try pairing again.',
+      );
+    }
+    if (pair.status == 'active') {
+      return pair;
+    }
+    if (!pair.memberIds.contains(currentUser.id)) {
+      throw const PairingFailure(
+        'You are not part of this connection.',
+      );
+    }
+    final confirmed = PairRecord(
+      id: pair.id,
+      memberIds: pair.memberIds,
+      status: 'active',
+      inviteCode: pair.inviteCode,
+      partnerDisplayName: pair.partnerDisplayName,
+      expiresInMinutes: pair.expiresInMinutes,
+    );
+    await _preferences.setString(_pairKey, jsonEncode(confirmed.toJson()));
+    return confirmed;
+  }
+
+  @override
   Future<void> skipPairing() async {
     await _preferences.remove(_pairKey);
     await _clearPendingInvite();

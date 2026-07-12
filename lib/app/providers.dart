@@ -37,6 +37,7 @@ import '../features/my_beacon/data/local_my_beacon_repository.dart';
 import '../features/my_beacon/domain/my_beacon_preferences.dart';
 import '../features/my_beacon/domain/my_beacon_repository.dart';
 import '../features/pairing/application/approve_pairing_use_case.dart';
+import '../features/pairing/application/confirm_pairing_use_case.dart';
 import '../features/pairing/application/create_invite_code_use_case.dart';
 import '../features/pairing/application/load_current_pair_use_case.dart';
 import '../features/pairing/application/skip_pairing_use_case.dart';
@@ -191,6 +192,9 @@ final createInviteCodeUseCaseProvider = Provider<CreateInviteCodeUseCase>(
 );
 final approvePairingUseCaseProvider = Provider<ApprovePairingUseCase>(
   (ref) => ApprovePairingUseCase(ref.watch(pairingRepositoryProvider)),
+);
+final confirmPairingUseCaseProvider = Provider<ConfirmPairingUseCase>(
+  (ref) => ConfirmPairingUseCase(ref.watch(pairingRepositoryProvider)),
 );
 final skipPairingUseCaseProvider = Provider<SkipPairingUseCase>(
   (ref) => SkipPairingUseCase(ref.watch(pairingRepositoryProvider)),

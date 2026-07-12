@@ -84,6 +84,7 @@
 - [x] Real current place capture uses device location
 - [x] Request Check-in uses pair-shared backend state
 - [x] Live Sharing uses pair-shared backend state
+- [x] Pairing mutual approval — both sides confirm before connection is active
 
 ---
 
@@ -121,7 +122,7 @@
 ### Not Yet
 - [ ] Queued check-in offline
 - [ ] Pair code expiry
-- [ ] Mutual approval
+- [x] Mutual approval
 - [ ] Local cache display (full)
 - [ ] Stale freshness display
 - [ ] Live sharing pause timer continues

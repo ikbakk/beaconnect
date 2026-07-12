@@ -38,7 +38,17 @@
 
 ## Implementation
 
-- `04-implementation/`
+- `04-implementation/FLUTTER_BRIDGE.md` ← start here for Flutter work
+- `04-implementation/DESIGN_TOKENS_FLUTTER.md`
+- `04-implementation/CSS_TO_FLUTTER.md`
+- `04-implementation/COMPONENT_MAP.md`
+- `04-implementation/SCREEN_SPEC.md`
+- `04-implementation/STATE_MANAGEMENT.md`
+- `04-implementation/coding-standards.md`
+- `04-implementation/flutter-setup-checklist.md`
+- `04-implementation/firebase-setup-checklist.md`
+- `04-implementation/firebase-credentials.md`
+- `04-implementation/firestore-draft-schema.md`
 
 ## Quality
 

@@ -1,0 +1,1168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Beaconnect Home Flow · image direction + motion behaviors</title>
+  <style>
+    :root {
+      --bg: #f6f1ea;
+      --surface: #fffdfa;
+      --fg: #28231d;
+      --muted: #756d63;
+      --border: #e7dfd4;
+      --accent: #b46c53;
+      --accent-soft: color-mix(in oklch, var(--accent) 14%, transparent);
+      --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+      --font-display: 'Iowan Old Style', 'Charter', Georgia, 'Times New Roman', serif;
+      --font-body: 'Plus Jakarta Sans', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      --font-mono: 'IBM Plex Mono', 'SF Mono', 'JetBrains Mono', ui-monospace, monospace;
+      --fs-h1: clamp(46px, 5.4vw, 76px);
+      --fs-h2: clamp(30px, 3vw, 42px);
+      --fs-h3: 22px;
+      --fs-lead: 19px;
+      --fs-body: 16px;
+      --fs-meta: 13px;
+      --gap-xs: 8px;
+      --gap-sm: 12px;
+      --gap-md: 20px;
+      --gap-lg: 32px;
+      --gap-xl: 56px;
+      --gap-2xl: 92px;
+      --container: 1180px;
+      --gutter: 28px;
+      --radius: 12px;
+      --radius-lg: 22px;
+      --phone-w: 292px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: var(--fs-body);
+      line-height: 1.55;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1, h2, h3, p { margin: 0; }
+    p { text-wrap: pretty; }
+    h1, h2, h3 { text-wrap: balance; }
+    button { font: inherit; }
+
+    .container { max-width: var(--container); margin: 0 auto; padding: 0 var(--gutter); }
+    .section { padding: clamp(48px, 8vw, var(--gap-2xl)) 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklch, var(--bg) 92%, transparent);
+      backdrop-filter: blur(12px);
+    }
+    .topnav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--gap-md);
+      padding: 14px 0;
+    }
+    .logo {
+      font-family: var(--font-display);
+      font-size: 20px;
+      letter-spacing: -0.015em;
+    }
+    .topnav-links {
+      display: flex;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .topnav-links a { color: inherit; text-decoration: none; }
+    .btn {
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      padding: 11px 18px;
+      font-size: 15px;
+      letter-spacing: 0.01em;
+      background: transparent;
+      color: var(--fg);
+      cursor: pointer;
+      transition: transform 140ms cubic-bezier(0.23, 1, 0.32, 1), border-color 140ms cubic-bezier(0.23, 1, 0.32, 1), background 140ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
+    .btn-secondary { border-color: var(--border); }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+      gap: 52px;
+      align-items: center;
+    }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+    .h1 {
+      font-family: var(--font-display);
+      font-size: var(--fs-h1);
+      line-height: 1.03;
+      letter-spacing: -0.025em;
+      margin-bottom: 18px;
+    }
+    .lead {
+      max-width: 56ch;
+      font-size: var(--fs-lead);
+      color: var(--muted);
+    }
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 30px;
+    }
+    .hero-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hero-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 18px;
+    }
+    .hero-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.04em;
+    }
+    .thumb-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .mini-screen {
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: color-mix(in oklch, var(--surface) 96%, var(--bg));
+      padding: 12px;
+      min-height: 138px;
+    }
+    .mini-screen strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+    .mini-screen span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+    .section-head h2 {
+      font-family: var(--font-display);
+      font-size: var(--fs-h2);
+      line-height: 1.08;
+      letter-spacing: -0.015em;
+    }
+    .section-head p {
+      max-width: 56ch;
+      color: var(--muted);
+    }
+
+    .state-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) 320px;
+      gap: 28px;
+      align-items: start;
+    }
+    .viewer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 28px;
+    }
+    .viewer-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .viewer-kicker {
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 40ch;
+    }
+    .phone-stage {
+      display: grid;
+      place-items: center;
+      padding: 12px;
+      background: color-mix(in oklch, var(--fg) 2.5%, var(--surface));
+      border-radius: 24px;
+      border: 1px solid var(--border);
+      min-height: 756px;
+    }
+    .phone {
+      width: var(--phone-w);
+      background: color-mix(in oklch, var(--fg) 88%, black);
+      border-radius: 36px;
+      padding: 10px;
+      box-shadow: 0 18px 44px rgba(40, 35, 29, 0.14);
+    }
+    .screen {
+      position: relative;
+      overflow: hidden;
+      min-height: 622px;
+      border-radius: 28px;
+      background: var(--bg);
+      padding: 14px 14px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .status-right {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .dot, .bar {
+      background: currentColor;
+      display: inline-block;
+      opacity: 0.9;
+    }
+    .dot { width: 6px; height: 6px; border-radius: 999px; }
+    .bar { width: 14px; height: 7px; border-radius: 3px; }
+
+    .partner-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 18px;
+      display: grid;
+      gap: 14px;
+      transition: transform 200ms cubic-bezier(0.23, 1, 0.32, 1), border-color 200ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .partner-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .partner-name {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 28px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      font-family: var(--font-display);
+    }
+    .pair-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      color: var(--muted);
+      background: color-mix(in oklch, var(--surface) 70%, var(--bg));
+    }
+    .state-chip {
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      background: color-mix(in oklch, var(--surface) 92%, var(--bg));
+    }
+    .partner-card h3 {
+      font-size: 24px;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      margin: 0;
+    }
+    .partner-meta {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+      max-width: 25ch;
+    }
+
+    .primary-cta {
+      position: relative;
+      border: none;
+      border-radius: 22px;
+      background: var(--accent);
+      color: var(--surface);
+      padding: 18px 16px;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      overflow: hidden;
+      transform-origin: center;
+      transition: transform 180ms cubic-bezier(0.23, 1, 0.32, 1), background 180ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .primary-cta::after {
+      content: '';
+      position: absolute;
+      inset: auto;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--surface) 24%, transparent);
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(0.4);
+      opacity: 0;
+    }
+    .phone.pressed .primary-cta {
+      transform: scale(0.985);
+    }
+    .phone.pressed .primary-cta::after {
+      animation: ripple 580ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .quick-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .quick-btn {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--fg);
+      border-radius: 18px;
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 14px;
+      letter-spacing: 0.01em;
+    }
+
+    .module {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+    .module-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .module-head h4 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+    .updates-list {
+      display: grid;
+      gap: 12px;
+    }
+    .update-item {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .update-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      background: color-mix(in oklch, var(--surface) 80%, var(--bg));
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+    .update-copy strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.32;
+      margin-bottom: 3px;
+      font-weight: 600;
+    }
+    .update-copy span {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.42;
+    }
+    .map-preview {
+      position: relative;
+      min-height: 152px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at 75% 28%, color-mix(in oklch, var(--accent) 18%, transparent) 0 18%, transparent 19%),
+        radial-gradient(circle at 42% 66%, color-mix(in oklch, var(--fg) 8%, transparent) 0 16%, transparent 17%),
+        linear-gradient(135deg, color-mix(in oklch, var(--surface) 82%, var(--bg)), color-mix(in oklch, var(--bg) 92%, var(--surface)));
+      overflow: hidden;
+    }
+    .map-preview::before,
+    .map-preview::after {
+      content: '';
+      position: absolute;
+      inset: auto;
+      border-radius: 999px;
+      border: 1px solid color-mix(in oklch, var(--muted) 25%, transparent);
+    }
+    .map-preview::before { width: 120px; height: 120px; left: 18px; top: 14px; }
+    .map-preview::after { width: 86px; height: 86px; right: 28px; bottom: 18px; }
+    .route-line {
+      position: absolute;
+      left: 22px;
+      right: 24px;
+      top: 58px;
+      height: 1px;
+      border-top: 1px dashed color-mix(in oklch, var(--muted) 32%, transparent);
+      transform: rotate(-8deg);
+    }
+    .place-pill {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--surface) 88%, var(--bg));
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .bottom-nav {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: auto;
+      padding-top: 6px;
+      border-top: 1px solid color-mix(in oklch, var(--border) 86%, transparent);
+    }
+    .nav-item {
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+    }
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 8px;
+      border: 1.5px solid currentColor;
+      position: relative;
+    }
+    .nav-item.active { color: var(--accent); }
+    .nav-item.active .nav-icon { background: currentColor; border-color: currentColor; }
+    .nav-item.active .nav-icon::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border-radius: 4px;
+      background: color-mix(in oklch, var(--surface) 90%, transparent);
+    }
+
+    .state-list {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+      position: sticky;
+      top: 84px;
+    }
+    .state-list button {
+      text-align: left;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: color-mix(in oklch, var(--surface) 90%, var(--bg));
+      padding: 14px;
+      cursor: pointer;
+      transition: border-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background 160ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .state-list button.active {
+      border-color: var(--accent);
+      background: color-mix(in oklch, var(--accent) 9%, var(--surface));
+    }
+    .state-list strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 2px;
+    }
+    .state-list span {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .motion-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+    .motion-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+    }
+    .motion-card h3 {
+      font-size: 20px;
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+    .motion-card p,
+    .motion-card li,
+    .motion-card span {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .motion-card ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+    .motion-demo {
+      min-height: 124px;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      background: color-mix(in oklch, var(--surface) 86%, var(--bg));
+      position: relative;
+      overflow: hidden;
+    }
+    .pulse-btn {
+      position: absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 16px;
+      background: var(--accent);
+      color: var(--surface);
+      border-radius: 18px;
+      padding: 14px;
+      text-align: center;
+      font-weight: 600;
+      animation: button-breathe 4.4s infinite;
+      transform-origin: center;
+    }
+    .sheet-demo {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px 20px 14px 14px;
+      padding: 14px;
+      animation: sheet-rise 3.8s infinite;
+    }
+    .sheet-demo::before {
+      content: '';
+      display: block;
+      width: 42px;
+      height: 4px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--muted) 28%, transparent);
+      margin: 0 auto 12px;
+    }
+    .map-demo::before,
+    .map-demo::after {
+      content: '';
+      position: absolute;
+      border-radius: 999px;
+      border: 1px dashed color-mix(in oklch, var(--muted) 28%, transparent);
+    }
+    .map-demo::before {
+      width: 108px;
+      height: 108px;
+      left: -10px;
+      top: 6px;
+      animation: map-drift 8s infinite linear;
+    }
+    .map-demo::after {
+      width: 78px;
+      height: 78px;
+      right: 12px;
+      bottom: 18px;
+      animation: map-drift 9s infinite linear reverse;
+    }
+    .map-focus {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 20px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: color-mix(in oklch, var(--surface) 92%, var(--bg));
+      border: 1px solid var(--border);
+      animation: card-settle 4.2s infinite;
+    }
+
+    .spec-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    .spec {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+    }
+    .spec strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .spec span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .pagefoot {
+      padding: 28px 0 46px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+    .foot-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    @keyframes ripple {
+      0% { opacity: 0.4; transform: translate(-50%, -50%) scale(0.4); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(10.5); }
+    }
+    @keyframes button-breathe {
+      0%, 72%, 100% { transform: scale(1); }
+      8% { transform: scale(0.985); }
+      18% { transform: scale(1); }
+    }
+    @keyframes sheet-rise {
+      0%, 20%, 100% { transform: translateY(78px); opacity: 0; }
+      34%, 76% { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes map-drift {
+      from { transform: translateX(0) rotate(0deg); }
+      to { transform: translateX(8px) rotate(360deg); }
+    }
+    @keyframes card-settle {
+      0%, 100% { transform: translateY(4px); }
+      50% { transform: translateY(0); }
+    }
+
+    @media (max-width: 1080px) {
+      .hero,
+      .state-shell { grid-template-columns: 1fr; }
+      .state-list { position: static; }
+      .motion-grid,
+      .spec-strip { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      .thumb-row,
+      .motion-grid,
+      .spec-strip { grid-template-columns: 1fr; }
+      .topnav-inner,
+      .section-head { align-items: start; flex-direction: column; }
+      .topnav-links { flex-wrap: wrap; }
+      .viewer,
+      .state-list,
+      .hero-card { padding: 18px; }
+      .phone-stage { min-height: auto; }
+      .phone { width: min(100%, var(--phone-w)); }
+    }
+  </style>
+</head>
+<body>
+  <header class="topnav" data-od-id="topnav">
+    <div class="container topnav-inner">
+      <div class="logo">Beaconnect</div>
+      <nav class="topnav-links" aria-label="Page sections">
+        <a href="#home-flow">Home flow</a>
+        <a href="#motion">Motion</a>
+        <a href="#specs">Rules</a>
+      </nav>
+      <button class="btn btn-primary" type="button">Home first</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" data-od-id="hero-brief">
+      <div class="container hero">
+        <div>
+          <p class="eyebrow">Beaconnect · Android-native premium · home focus</p>
+          <h1 class="h1">A full-flow Beaconnect Home concept, with motion only where it explains change.</h1>
+          <p class="lead">This pass locks the calm Android visual system for the Home screen, shows the six required partner-card states without changing layout, and turns the three key interactions into quiet motion behaviors the product team could hand straight into implementation.</p>
+          <div class="hero-actions">
+            <button class="btn btn-primary" type="button" id="heroStateCycle">Cycle states</button>
+            <button class="btn btn-secondary" type="button" id="heroPressDemo">Press I’m Okay</button>
+          </div>
+          <p class="hero-note">Image direction: warm neutral surfaces, flat depth, centered reassurance. Motion direction: compress, settle, reveal — never bounce, glow, or perform.</p>
+        </div>
+        <aside class="hero-card" data-od-id="hero-summary-card">
+          <div class="hero-card-head">
+            <span>Locked brief</span>
+            <span>Full flow set</span>
+          </div>
+          <div class="thumb-row">
+            <div class="mini-screen">
+              <strong>Normal</strong>
+              <span>Everything looks normal. Updated 2 minutes ago at Home.</span>
+            </div>
+            <div class="mini-screen">
+              <strong>Live sharing</strong>
+              <span>Live sharing started 4 minutes ago. Gentle temporary state.</span>
+            </div>
+            <div class="mini-screen">
+              <strong>Sharing paused</strong>
+              <span>Sharing is currently paused. Clear and reversible.</span>
+            </div>
+            <div class="mini-screen">
+              <strong>No new updates</strong>
+              <span>No new updates yet. Calm absence, not a warning.</span>
+            </div>
+            <div class="mini-screen">
+              <strong>Permission missing</strong>
+              <span>Sharing works best when location access stays on.</span>
+            </div>
+            <div class="mini-screen">
+              <strong>No partner</strong>
+              <span>Connections are mutual and begin when both people agree.</span>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section" id="home-flow" data-od-id="home-flow">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Image direction</p>
+            <h2>One stable layout, six relationship states.</h2>
+          </div>
+          <p>The partner remains the center of gravity in every state. The map stays supportive. The same modules hold steady so the user reads state changes as reassurance, not as a new screen to decode.</p>
+        </div>
+        <div class="state-shell">
+          <div class="viewer" data-od-id="home-screen-viewer">
+            <div class="viewer-top">
+              <div>
+                <strong id="stateTitle">Normal</strong>
+                <p class="viewer-kicker" id="stateNote">Calm default state. The partner card answers the question in under three seconds, with the primary action centered immediately below.</p>
+              </div>
+              <button class="btn btn-secondary" type="button" id="viewerPressDemo">Demo press</button>
+            </div>
+            <div class="phone-stage">
+              <div class="phone" id="phoneDemo" data-state="normal">
+                <div class="screen">
+                  <div class="status-bar">
+                    <span>9:41</span>
+                    <div class="status-right" aria-hidden="true">
+                      <span class="dot"></span>
+                      <span class="bar"></span>
+                    </div>
+                  </div>
+
+                  <section class="partner-card" data-od-id="partner-card">
+                    <div class="partner-top">
+                      <div class="partner-name"><span>Sarah</span><span class="pair-mark">★</span></div>
+                      <span class="state-chip" id="partnerChip">Everything normal</span>
+                    </div>
+                    <h3 id="partnerHeadline">Everything looks normal.</h3>
+                    <p class="partner-meta" id="partnerMeta">Updated 2 minutes ago at Home.</p>
+                  </section>
+
+                  <button class="primary-cta" id="imOkayButton" data-od-id="cta-im-okay" type="button">I’m Okay</button>
+
+                  <div class="quick-row">
+                    <button class="quick-btn" data-od-id="quick-request-check-in" type="button">Request Check-in</button>
+                    <button class="quick-btn" data-od-id="quick-start-live" type="button">Start Live</button>
+                  </div>
+
+                  <section class="module" data-od-id="recent-updates-module">
+                    <div class="module-head">
+                      <h4>Recent updates</h4>
+                      <span class="module-head-note" id="updatesHint" style="color: var(--muted); font-size: 13px;">Latest two</span>
+                    </div>
+                    <div class="updates-list" id="updatesList">
+                      <div class="update-item">
+                        <div class="update-mark">✓</div>
+                        <div class="update-copy">
+                          <strong>I’m Okay</strong>
+                          <span>Sent 14 minutes ago with a heart reaction from Sarah.</span>
+                        </div>
+                      </div>
+                      <div class="update-item">
+                        <div class="update-mark">⌂</div>
+                        <div class="update-copy">
+                          <strong>Arrived at Home</strong>
+                          <span>Updated 2 minutes ago. No extra action needed.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
+                  <section class="module" data-od-id="map-preview-module">
+                    <div class="module-head">
+                      <h4>Current place</h4>
+                      <span style="color: var(--muted); font-size: 13px;">Secondary preview</span>
+                    </div>
+                    <div class="map-preview" id="mapPreview" aria-label="Soft map preview">
+                      <div class="route-line"></div>
+                      <div class="place-pill" id="mapLabel">Home · gently approximate</div>
+                    </div>
+                  </section>
+
+                  <nav class="bottom-nav" data-od-id="bottom-nav" aria-label="Main navigation">
+                    <div class="nav-item active"><span class="nav-icon"></span><span>Home</span></div>
+                    <div class="nav-item"><span class="nav-icon"></span><span>Updates</span></div>
+                    <div class="nav-item"><span class="nav-icon"></span><span>Settings</span></div>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="state-list" data-od-id="state-selector">
+            <button class="active" type="button" data-state-target="normal">
+              <strong>Normal</strong>
+              <span>Fast reassurance, no extra explanation.</span>
+            </button>
+            <button type="button" data-state-target="live">
+              <strong>Live sharing</strong>
+              <span>Temporary, intentional, and clearly time-bound.</span>
+            </button>
+            <button type="button" data-state-target="paused">
+              <strong>Sharing paused</strong>
+              <span>Clear pause language without blame or alarm.</span>
+            </button>
+            <button type="button" data-state-target="quiet">
+              <strong>No new updates</strong>
+              <span>Still calm when nothing changed.</span>
+            </button>
+            <button type="button" data-state-target="permission">
+              <strong>Permission missing</strong>
+              <span>Explain before action, in plain language.</span>
+            </button>
+            <button type="button" data-state-target="unpaired">
+              <strong>No partner</strong>
+              <span>Relationship first — mutual connection before tracking.</span>
+            </button>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="motion" data-od-id="motion-behaviors">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Motion behaviors</p>
+            <h2>Quiet motion that teaches cause and effect.</h2>
+          </div>
+          <p>Every motion cue is short, asymmetric, and purpose-bound. Nothing loops for delight alone. The user should only notice movement when it helps explain what just changed.</p>
+        </div>
+        <div class="motion-grid">
+          <article class="motion-card" data-od-id="motion-card-im-okay">
+            <div class="motion-demo">
+              <div class="pulse-btn">I’m Okay</div>
+            </div>
+            <h3>I’m Okay press</h3>
+            <p>The primary action compresses by about 1.5%, sends one contained ripple, then returns to rest. The rest of the screen stays still so the action feels calm and deliberate.</p>
+            <ul>
+              <li>Press: 140ms in, 180ms out</li>
+              <li>Haptic: soft confirmation only</li>
+              <li>No bounce, no pulse, no celebratory state</li>
+            </ul>
+          </article>
+          <article class="motion-card" data-od-id="motion-card-sheet">
+            <div class="motion-demo">
+              <div class="sheet-demo">
+                <strong style="display:block;margin-bottom:6px;">Request Check-in</strong>
+                <span>Could you send a quick check-in?</span>
+              </div>
+            </div>
+            <h3>Secondary actions open as sheets</h3>
+            <p>Request Check-in and Start Live rise from the bottom as one clear next step. The movement comes from below because it feels additive, not interruptive.</p>
+            <ul>
+              <li>Sheet enter: 220ms ease-out</li>
+              <li>Sheet exit: 140ms ease-out</li>
+              <li>Background dims slightly, never dramatically</li>
+            </ul>
+          </article>
+          <article class="motion-card" data-od-id="motion-card-map">
+            <div class="motion-demo map-demo">
+              <div class="map-focus">
+                <strong style="display:block;margin-bottom:6px;">Current place</strong>
+                <span>Map remains secondary and settles behind the main story.</span>
+              </div>
+            </div>
+            <h3>State changes settle into place</h3>
+            <p>When the partner state changes, the card cross-fades its wording and the map preview subtly re-centers underneath. The screen should feel updated, not reloaded.</p>
+            <ul>
+              <li>Copy swap: 180ms fade/translate</li>
+              <li>Map settle: 260ms ease-out drift</li>
+              <li>No spinner, no technical language</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="specs" data-od-id="implementation-rules">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Locked rules</p>
+            <h2>What carries forward into image generation and Flutter motion.</h2>
+          </div>
+          <p>This is the handoff layer: the parts that should stay fixed while the art gets rendered into polished concept frames and the motion gets built in native code.</p>
+        </div>
+        <div class="spec-strip">
+          <div class="spec" data-od-id="rule-gravity">
+            <strong>Center of gravity</strong>
+            <span>Partner first, reassurance second, controls third. The map never outranks the relationship.</span>
+          </div>
+          <div class="spec" data-od-id="rule-language">
+            <strong>Language system</strong>
+            <span>Updated, current place, sharing paused, no new updates yet. Never GPS, sync, cache, or permission denied.</span>
+          </div>
+          <div class="spec" data-od-id="rule-visual-system">
+            <strong>Visual system</strong>
+            <span>Warm neutrals, flat surfaces, moderate corners, Android-native structure, one softly prominent accent.</span>
+          </div>
+          <div class="spec" data-od-id="rule-motion-system">
+            <strong>Motion system</strong>
+            <span>Compression, sheet rise, gentle settle. Motion explains change, then disappears.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pagefoot" data-od-id="footer">
+    <div class="container foot-row">
+      <span>Beaconnect Home · image direction first, motion next</span>
+      <span>Built for reassurance, not surveillance.</span>
+    </div>
+  </footer>
+
+  <script>
+    const STATE_DATA = {
+      normal: {
+        title: 'Normal',
+        note: 'Calm default state. The partner card answers the question in under three seconds, with the primary action centered immediately below.',
+        chip: 'Everything normal',
+        headline: 'Everything looks normal.',
+        meta: 'Updated 2 minutes ago at Home.',
+        hint: 'Latest two',
+        map: 'Home · gently approximate',
+        updates: [
+          { mark: '✓', title: 'I’m Okay', detail: 'Sent 14 minutes ago with a heart reaction from Sarah.' },
+          { mark: '⌂', title: 'Arrived at Home', detail: 'Updated 2 minutes ago. No extra action needed.' }
+        ]
+      },
+      live: {
+        title: 'Live sharing',
+        note: 'Live is explicit and temporary. The state turns more present, but still avoids surveillance language or heightened alarms.',
+        chip: 'Live sharing',
+        headline: 'Sharing live for a little while.',
+        meta: 'Started 4 minutes ago near Riverside Walk.',
+        hint: 'Live now',
+        map: 'Riverside Walk · current place',
+        updates: [
+          { mark: '↗', title: 'Live sharing started', detail: 'Started 4 minutes ago for a temporary check-in.' },
+          { mark: '💬', title: 'Request Check-in', detail: 'Sent 12 minutes ago. Sarah responded with “On my way home.”' }
+        ]
+      },
+      paused: {
+        title: 'Sharing paused',
+        note: 'Pause is framed as a neutral state, not a fault. The action path stays simple: understand, then choose what to do next.',
+        chip: 'Sharing paused',
+        headline: 'Sharing is currently paused.',
+        meta: 'Last updated 28 minutes ago at Cedar Café.',
+        hint: 'Needs context',
+        map: 'Cedar Café · last shared place',
+        updates: [
+          { mark: '∥', title: 'Sharing paused', detail: 'Paused 28 minutes ago. Mutual sharing can resume anytime.' },
+          { mark: '✓', title: 'I’m Okay', detail: 'Sent earlier this afternoon with no further changes yet.' }
+        ]
+      },
+      quiet: {
+        title: 'No new updates',
+        note: 'Silence is treated as an ordinary state. The screen stays settled and the copy makes absence feel non-threatening.',
+        chip: 'No new updates',
+        headline: 'No new updates yet.',
+        meta: 'Showing the most recent update from Home, 47 minutes ago.',
+        hint: 'Still current',
+        map: 'Home · most recent place',
+        updates: [
+          { mark: '⌂', title: 'At Home', detail: 'Still showing the most recent update from 47 minutes ago.' },
+          { mark: '♡', title: 'Everything normal', detail: 'Nothing meaningful changed since you last looked.' }
+        ]
+      },
+      permission: {
+        title: 'Permission missing',
+        note: 'This state explains before it asks. The wording stays human and reversible, with no Android constant names or error jargon.',
+        chip: 'Needs permission',
+        headline: 'Sharing works best when location access stays on.',
+        meta: 'Sarah can still see your last update while you review this.',
+        hint: 'Explain first',
+        map: 'Most recent place kept visible',
+        updates: [
+          { mark: '!', title: 'Location access needs attention', detail: 'Turn it back on to keep sharing current updates.' },
+          { mark: '⌂', title: 'Most recent update', detail: 'Updated earlier at Home and still available in the meantime.' }
+        ]
+      },
+      unpaired: {
+        title: 'No partner',
+        note: 'The empty relationship state still centers mutual consent. The screen invites connection without turning into an onboarding carousel.',
+        chip: 'Waiting to pair',
+        headline: 'Connect when both people are ready.',
+        meta: 'Beaconnect only works when both people agree.',
+        hint: 'Mutual setup',
+        map: 'Map preview waits until you connect',
+        updates: [
+          { mark: '∞', title: 'Start with trust', detail: 'Send an invitation when you and your partner are ready to connect.' },
+          { mark: '✓', title: 'Built for reassurance', detail: 'Sharing is always mutual, visible, and reversible.' }
+        ]
+      }
+    };
+
+    const phone = document.getElementById('phoneDemo');
+    const stateButtons = Array.from(document.querySelectorAll('[data-state-target]'));
+    const stateTitle = document.getElementById('stateTitle');
+    const stateNote = document.getElementById('stateNote');
+    const partnerChip = document.getElementById('partnerChip');
+    const partnerHeadline = document.getElementById('partnerHeadline');
+    const partnerMeta = document.getElementById('partnerMeta');
+    const updatesHint = document.getElementById('updatesHint');
+    const updatesList = document.getElementById('updatesList');
+    const mapLabel = document.getElementById('mapLabel');
+    const cycleOrder = ['normal', 'live', 'paused', 'quiet', 'permission', 'unpaired'];
+    let cycleIndex = 0;
+
+    function renderUpdates(items) {
+      updatesList.innerHTML = items.map(item => `
+        <div class="update-item">
+          <div class="update-mark">${item.mark}</div>
+          <div class="update-copy">
+            <strong>${item.title}</strong>
+            <span>${item.detail}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setState(next) {
+      const data = STATE_DATA[next];
+      if (!data) return;
+      phone.dataset.state = next;
+      stateTitle.textContent = data.title;
+      stateNote.textContent = data.note;
+      partnerChip.textContent = data.chip;
+      partnerHeadline.textContent = data.headline;
+      partnerMeta.textContent = data.meta;
+      updatesHint.textContent = data.hint;
+      mapLabel.textContent = data.map;
+      renderUpdates(data.updates);
+      stateButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.stateTarget === next);
+      });
+      cycleIndex = cycleOrder.indexOf(next);
+    }
+
+    function pressDemo() {
+      phone.classList.remove('pressed');
+      void phone.offsetWidth;
+      phone.classList.add('pressed');
+      window.setTimeout(() => phone.classList.remove('pressed'), 640);
+    }
+
+    stateButtons.forEach(button => {
+      button.addEventListener('click', () => setState(button.dataset.stateTarget));
+    });
+
+    document.getElementById('viewerPressDemo').addEventListener('click', pressDemo);
+    document.getElementById('heroPressDemo').addEventListener('click', pressDemo);
+    document.getElementById('imOkayButton').addEventListener('click', pressDemo);
+    document.getElementById('heroStateCycle').addEventListener('click', () => {
+      cycleIndex = (cycleIndex + 1) % cycleOrder.length;
+      setState(cycleOrder[cycleIndex]);
+    });
+
+    setState('normal');
+  </script>
+</body>
+</html>

@@ -1,0 +1,981 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Beaconnect Identity Directions</title>
+  <style>
+    :root {
+      --bg: oklch(97% 0.004 70);
+      --surface: oklch(99% 0.002 70);
+      --surface-2: oklch(95% 0.005 70);
+      --ink: oklch(28% 0.018 55);
+      --muted: oklch(52% 0.016 55);
+      --line: oklch(87% 0.008 70);
+      --terracotta: oklch(62% 0.07 52);
+      --sage: oklch(58% 0.07 145);
+      --cocoa: oklch(42% 0.03 45);
+      --sand: oklch(92% 0.01 75);
+      --soft-blue: oklch(68% 0.04 240);
+      --radius-sm: 14px;
+      --radius-md: 22px;
+      --radius-lg: 34px;
+      --shadow: 0 20px 50px rgba(42, 35, 28, 0.08);
+      --font-display: "Plus Jakarta Sans", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", "SFMono-Regular", ui-monospace, monospace;
+      --route-accent: var(--terracotta);
+      --route-accent-soft: color-mix(in oklch, var(--route-accent) 16%, white);
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: #f6f2eb;
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1, h2, h3 { text-wrap: balance; }
+    p { text-wrap: pretty; }
+    button, input, textarea { font: inherit; }
+
+    .page {
+      width: min(1220px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 28px 0 64px;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 28px;
+      align-items: stretch;
+      margin-bottom: 28px;
+    }
+    .panel {
+      background: color-mix(in oklch, var(--surface) 96%, white);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+    .hero-copy {
+      padding: 34px;
+      display: grid;
+      gap: 18px;
+    }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(44px, 6vw, 72px);
+      line-height: 1.02;
+      letter-spacing: -0.03em;
+    }
+    .lead {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 58ch;
+    }
+    .principles {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .principle {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      background: var(--surface);
+      font-size: 14px;
+    }
+    .hero-note {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .hero-preview {
+      padding: 26px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+    .preview-stack {
+      display: grid;
+      gap: 14px;
+    }
+    .mini-card {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+    }
+    .mini-tag {
+      width: fit-content;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+    .mini-wordmark {
+      font-family: var(--font-display);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.035em;
+    }
+    .mini-lockup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .symbol-dot {
+      width: 42px;
+      height: 42px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: color-mix(in oklch, var(--route-accent) 13%, white);
+      color: var(--route-accent);
+      border: 1px solid color-mix(in oklch, var(--route-accent) 30%, white);
+      font-weight: 700;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 18px;
+    }
+    .route-tab {
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 12px 16px;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: background 160ms cubic-bezier(0.23, 1, 0.32, 1), border-color 160ms cubic-bezier(0.23, 1, 0.32, 1), transform 140ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .route-tab[aria-pressed="true"] {
+      background: color-mix(in oklch, var(--route-accent) 14%, white);
+      border-color: color-mix(in oklch, var(--route-accent) 26%, white);
+    }
+    .route-tab:active { transform: translateY(1px); }
+
+    .route-shell {
+      padding: 30px;
+      margin-bottom: 28px;
+    }
+    .route-grid {
+      display: grid;
+      grid-template-columns: 0.9fr 1.1fr;
+      gap: 26px;
+      align-items: start;
+    }
+    .route-visual {
+      display: grid;
+      gap: 16px;
+    }
+    .route-art {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: 28px;
+      background: color-mix(in oklch, var(--route-accent) 5%, white);
+      min-height: 330px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+    .route-label {
+      font-family: var(--font-mono);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .route-wordmark {
+      font-family: var(--font-display);
+      font-size: clamp(46px, 5vw, 74px);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      font-weight: 750;
+    }
+    .route-wordmark .be {
+      color: var(--route-accent);
+      margin-right: 0.02em;
+    }
+    .route-lockup {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-size: 30px;
+      letter-spacing: -0.035em;
+      font-weight: 700;
+    }
+    .route-caption {
+      max-width: 42ch;
+      color: var(--muted);
+      font-size: 15px;
+    }
+
+    .symbol-panel {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      padding: 20px;
+      display: grid;
+      gap: 10px;
+    }
+    .symbol-frame {
+      width: 116px;
+      height: 116px;
+      border-radius: 28px;
+      background: color-mix(in oklch, var(--route-accent) 12%, white);
+      border: 1px solid color-mix(in oklch, var(--route-accent) 28%, white);
+      display: grid;
+      place-items: center;
+    }
+    .symbol-frame svg { width: 78px; height: 78px; }
+
+    .route-detail {
+      display: grid;
+      gap: 16px;
+    }
+    .summary-card {
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--surface);
+      display: grid;
+      gap: 10px;
+    }
+    .summary-card h2 {
+      font-family: var(--font-display);
+      font-size: 34px;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+    }
+    .summary-card p { color: var(--muted); }
+    .good-fit {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chip {
+      width: fit-content;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--route-accent) 10%, white);
+      border: 1px solid color-mix(in oklch, var(--route-accent) 24%, white);
+      font-size: 13px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .detail-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      background: var(--surface);
+      display: grid;
+      gap: 10px;
+    }
+    .detail-card h3 {
+      font-size: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+    .detail-card ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+      color: var(--ink);
+      font-size: 15px;
+    }
+    .palette-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .swatch {
+      border-radius: 18px;
+      padding: 14px;
+      min-height: 104px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      border: 1px solid rgba(0,0,0,0.05);
+      font-size: 12px;
+      line-height: 1.35;
+      color: rgba(17, 17, 17, 0.82);
+      letter-spacing: 0.01em;
+    }
+    .swatch.dark { color: rgba(255,255,255,0.92); }
+
+    .prompt-area {
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: #fbfaf8;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+    .prompt-box {
+      width: 100%;
+      min-height: 160px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: white;
+      padding: 14px 16px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--ink);
+      resize: vertical;
+    }
+    .prompt-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .small-btn {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 10px 14px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+    }
+
+    .usage-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .usage-card {
+      padding: 22px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      display: grid;
+      gap: 10px;
+    }
+    .usage-card h3 {
+      font-family: var(--font-display);
+      font-size: 24px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+    .usage-card ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .fit-grid {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 18px;
+    }
+    .app-frame {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      padding: 20px;
+      background: #ece6df;
+    }
+    .phone {
+      width: min(100%, 340px);
+      margin: 0 auto;
+      border-radius: 34px;
+      padding: 10px;
+      background: #121110;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.16);
+    }
+    .phone-screen {
+      border-radius: 26px;
+      background: var(--bg);
+      min-height: 640px;
+      padding: 20px 16px 16px;
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.03em;
+    }
+    .partner-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+    }
+    .partner-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .partner-name {
+      font-family: var(--font-display);
+      font-size: 28px;
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+    .tiny-symbol {
+      width: 28px;
+      height: 28px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      background: color-mix(in oklch, var(--route-accent) 12%, white);
+      color: var(--route-accent);
+      border: 1px solid color-mix(in oklch, var(--route-accent) 26%, white);
+    }
+    .partner-copy strong {
+      display: block;
+      font-size: 24px;
+      line-height: 1.16;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+    .partner-copy span {
+      display: block;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .cta {
+      background: var(--route-accent);
+      color: white;
+      border-radius: 22px;
+      padding: 17px 16px;
+      text-align: center;
+      font-weight: 650;
+      letter-spacing: 0.02em;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .subcta, .update, .map {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+    }
+    .subcta {
+      padding: 14px 12px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .updates {
+      display: grid;
+      gap: 10px;
+    }
+    .update {
+      padding: 14px;
+      display: grid;
+      gap: 4px;
+    }
+    .update strong { font-size: 15px; }
+    .update span, .map span { color: var(--muted); font-size: 13px; }
+    .map {
+      min-height: 132px;
+      padding: 14px;
+      background: color-mix(in oklch, var(--route-accent) 7%, white);
+      display: grid;
+      align-content: end;
+    }
+    .fit-copy {
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--surface);
+      display: grid;
+      gap: 14px;
+    }
+    .fit-copy h2 {
+      font-family: var(--font-display);
+      font-size: 34px;
+      line-height: 1.06;
+      letter-spacing: -0.02em;
+    }
+    .fit-copy ul {
+      margin: 0;
+      padding-left: 18px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 980px) {
+      .hero,
+      .route-grid,
+      .fit-grid { grid-template-columns: 1fr; }
+      .usage-grid,
+      .detail-grid,
+      .palette-row { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 680px) {
+      .page { width: min(100% - 20px, 1220px); padding-top: 16px; }
+      .hero-copy, .hero-preview, .route-shell { padding: 20px; }
+      .principles,
+      .usage-grid,
+      .detail-grid,
+      .palette-row { grid-template-columns: 1fr; }
+      h1 { font-size: 42px; }
+      .route-wordmark { font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page" data-od-id="identity-page">
+    <section class="hero" data-od-id="identity-hero">
+      <div class="panel hero-copy">
+        <div class="eyebrow" data-od-id="identity-eyebrow">Beaconnect · identity directions</div>
+        <h1 data-od-id="identity-title">Calm identity routes for a reassurance-first relationship product.</h1>
+        <p class="lead" data-od-id="identity-lead">A Beaconnect mark should feel present, not performative: soft enough to live on onboarding and the launcher icon, restrained enough to disappear once the partner becomes the focus.</p>
+        <div class="principles" data-od-id="identity-principles">
+          <div class="principle">No surveillance cues: no pins, radar, targets, pulses, or precision rings.</div>
+          <div class="principle">Mutuality over monitoring: forms should imply two-sided connection, not one-sided tracking.</div>
+          <div class="principle">Warm restraint: muted terracotta, sage, bark, and linen instead of bright trust-tech blues.</div>
+          <div class="principle">Usage discipline: brand shows on onboarding, splash, launcher, About, and store surfaces only.</div>
+        </div>
+        <p class="hero-note" data-od-id="identity-hero-note">Recommended default: Route 1, because it matches the current app palette and reads most naturally inside the Android concept you already have.</p>
+      </div>
+      <aside class="panel hero-preview" data-od-id="identity-overview-preview">
+        <div class="eyebrow">At a glance</div>
+        <div class="preview-stack">
+          <div class="mini-card">
+            <div class="mini-tag">Recommended</div>
+            <div class="mini-lockup"><div class="symbol-dot">⋂</div><div class="mini-wordmark">beaconnect</div></div>
+            <span>Soft pair-light symbol, terracotta-first palette, quiet onboarding fit.</span>
+          </div>
+          <div class="mini-card">
+            <div class="mini-tag">Alternate</div>
+            <div class="mini-lockup"><div class="symbol-dot">be</div><div class="mini-wordmark">Be connect</div></div>
+            <span>Conversational wordmark that leans into “Be Connect” without becoming a slogan.</span>
+          </div>
+          <div class="mini-card">
+            <div class="mini-tag">Most minimal</div>
+            <div class="mini-lockup"><div class="symbol-dot">∿</div><div class="mini-wordmark">beaconnect</div></div>
+            <span>Calmest route: a small shared-line symbol and a low-contrast wordmark.</span>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel route-shell" data-od-id="identity-routes-section">
+      <div class="controls" data-od-id="identity-route-tabs">
+        <button class="route-tab" aria-pressed="true" data-route="pair-light">Route 1 · Quiet Pair</button>
+        <button class="route-tab" aria-pressed="false" data-route="be-connect">Route 2 · Be / Connect</button>
+        <button class="route-tab" aria-pressed="false" data-route="shared-line">Route 3 · Shared Line</button>
+      </div>
+
+      <article class="route" data-route-panel="pair-light">
+        <div class="route-grid">
+          <div class="route-visual">
+            <div class="route-art" data-od-id="route-pair-light-art">
+              <div class="route-label">Wordmark</div>
+              <div class="route-wordmark">beaconnect</div>
+              <div class="route-label">Lockup</div>
+              <div class="route-lockup">
+                <span class="symbol-frame" style="width:84px;height:84px;border-radius:22px;">
+                  <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                    <rect x="22" y="18" width="22" height="54" rx="11" fill="currentColor" opacity="0.88"></rect>
+                    <rect x="52" y="24" width="22" height="42" rx="11" fill="currentColor" opacity="0.52"></rect>
+                    <path d="M35 78C44 71 52 71 61 78" stroke="currentColor" stroke-width="6" stroke-linecap="round"></path>
+                  </svg>
+                </span>
+                <span>beaconnect</span>
+              </div>
+              <p class="route-caption">Two softened vertical forms imply two people quietly sharing presence; the joining stroke at the base makes it mutual instead of directional.</p>
+            </div>
+            <div class="symbol-panel" data-od-id="route-pair-light-symbol">
+              <div class="route-label">Symbol</div>
+              <div class="symbol-frame">
+                <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                  <rect x="22" y="18" width="22" height="54" rx="11" fill="currentColor" opacity="0.88"></rect>
+                  <rect x="52" y="24" width="22" height="42" rx="11" fill="currentColor" opacity="0.52"></rect>
+                  <path d="M35 78C44 71 52 71 61 78" stroke="currentColor" stroke-width="6" stroke-linecap="round"></path>
+                </svg>
+              </div>
+              <div class="route-caption">Avoid reading it as a pin by keeping the base open and horizontal, not pointed.</div>
+            </div>
+          </div>
+          <div class="route-detail">
+            <div class="summary-card" data-od-id="route-pair-light-summary">
+              <h2>Quiet Pair</h2>
+              <p>Best fit for the current app. It feels warm, grounded, and relationship-first without becoming cute. It also scales well from launcher icon to onboarding header.</p>
+              <div class="good-fit">
+                <span class="chip">best for launcher icon</span>
+                <span class="chip">best for onboarding</span>
+                <span class="chip">best continuity with current UI</span>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <section class="detail-card" data-od-id="route-pair-light-wordmark-card">
+                <h3>Wordmark direction</h3>
+                <ul>
+                  <li>Lowercase only: softer and less brand-forward.</li>
+                  <li>Tight negative tracking around <strong>−0.04em</strong> keeps it contemporary and quiet.</li>
+                  <li>Use a slightly heavier weight on <strong>beacon</strong> and regular on <strong>nect</strong> only when large; keep a single weight at small sizes.</li>
+                </ul>
+              </section>
+              <section class="detail-card" data-od-id="route-pair-light-palette-card">
+                <h3>Palette</h3>
+                <div class="palette-row">
+                  <div class="swatch" style="background:#f6f2eb">Linen<br>#F6F2EB</div>
+                  <div class="swatch" style="background:#e8ddd1">Warm sand<br>#E8DDD1</div>
+                  <div class="swatch dark" style="background:#b56f58">Terracotta<br>#B56F58</div>
+                  <div class="swatch dark" style="background:#8ea28d">Sage<br>#8EA28D</div>
+                  <div class="swatch dark" style="background:#5e4c41">Cocoa bark<br>#5E4C41</div>
+                </div>
+              </section>
+              <section class="detail-card" data-od-id="route-pair-light-rules-card">
+                <h3>Usage rules</h3>
+                <ul>
+                  <li>Use full lockup on splash, onboarding welcome, About, and store listing only.</li>
+                  <li>Use symbol-only for launcher icon and widget settings thumbnail.</li>
+                  <li>Do not place the mark on Home, Updates, or Trust Center headers.</li>
+                </ul>
+              </section>
+              <section class="detail-card" data-od-id="route-pair-light-image-card">
+                <h3>Image prompts</h3>
+                <ul>
+                  <li>Prompt for polished wordmark exploration.</li>
+                  <li>Prompt for Android launcher icon tile.</li>
+                  <li>Negative prompt to avoid maps, pins, radar, crosshairs, neon, or social-app styling.</li>
+                </ul>
+              </section>
+            </div>
+            <div class="prompt-area" data-od-id="route-pair-light-prompts">
+              <div class="route-label">Generation prompt</div>
+              <textarea class="prompt-box" readonly>Design an original identity system for a calm Android relationship app called Beaconnect. Brand feeling: quiet, dependable, thoughtful, human, respectful; 90% calm, 10% charm. Create a lowercase wordmark plus a simple symbol built from two softened vertical forms joined by a subtle shared curve, suggesting mutual presence rather than tracking. Use muted warm neutrals with terracotta, sage, bark, and linen; flat surfaces; moderate rounding; no gradients; no glossy effects; no mascots. The symbol must feel safe on an app icon, splash screen, onboarding, and About screen. Avoid surveillance cues: no map pins, radar, crosshairs, pulsing dots, or GPS metaphors. Avoid corporate dashboard, fintech, or social-feed aesthetics. Output should feel premium, quiet, Android-native, and original.</textarea>
+              <div class="prompt-actions">
+                <button class="small-btn" data-copy-target="route-pair-light-prompts">Copy prompt</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="route hidden" data-route-panel="be-connect">
+        <div class="route-grid">
+          <div class="route-visual">
+            <div class="route-art" data-od-id="route-be-connect-art">
+              <div class="route-label">Wordmark</div>
+              <div class="route-wordmark"><span class="be">Be</span>connect</div>
+              <div class="route-label">Lockup</div>
+              <div class="route-lockup">
+                <span class="symbol-frame" style="width:84px;height:84px;border-radius:22px;">
+                  <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                    <path d="M25 49C25 35 36 24 50 24H57C65 24 72 31 72 39C72 47 65 54 57 54H43C35 54 28 61 28 69C28 77 35 84 43 84H55" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <circle cx="62" cy="72" r="8" fill="currentColor" opacity="0.55"></circle>
+                  </svg>
+                </span>
+                <span><span class="be">Be</span>connect</span>
+              </div>
+              <p class="route-caption">A more verbal route that leans into the brand’s double meaning — Beaconnect as a name, “Be connect” as a feeling — without turning into a campaign line.</p>
+            </div>
+            <div class="symbol-panel" data-od-id="route-be-connect-symbol">
+              <div class="route-label">Symbol</div>
+              <div class="symbol-frame">
+                <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                  <path d="M25 49C25 35 36 24 50 24H57C65 24 72 31 72 39C72 47 65 54 57 54H43C35 54 28 61 28 69C28 77 35 84 43 84H55" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"></path>
+                  <circle cx="62" cy="72" r="8" fill="currentColor" opacity="0.55"></circle>
+                </svg>
+              </div>
+              <div class="route-caption">The stroke should feel handwritten-systematic, not quirky. Keep it monoline and balanced.</div>
+            </div>
+          </div>
+          <div class="route-detail">
+            <div class="summary-card" data-od-id="route-be-connect-summary">
+              <h2>Be / Connect</h2>
+              <p>The most conversational option. Good if you want Beaconnect to feel slightly more editorial or lifestyle-oriented, especially in onboarding and store marketing surfaces.</p>
+              <div class="good-fit">
+                <span class="chip">best for app-store art</span>
+                <span class="chip">best for onboarding headline pairing</span>
+                <span class="chip">less suited to tiny icon sizes</span>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <section class="detail-card" data-od-id="route-be-connect-wordmark-card">
+                <h3>Wordmark direction</h3>
+                <ul>
+                  <li>Color the “Be” accent only in large placements; use one color on small lockups.</li>
+                  <li>Keep the split subtle: this should read as discovery, not as two separate words shouting for attention.</li>
+                  <li>Use slightly wider spacing in store or launch surfaces to keep it airy.</li>
+                </ul>
+              </section>
+              <section class="detail-card" data-od-id="route-be-connect-palette-card">
+                <h3>Palette</h3>
+                <div class="palette-row">
+                  <div class="swatch" style="background:#f7f4ee">Shell<br>#F7F4EE</div>
+                  <div class="swatch" style="background:#e9ddd3">Clay mist<br>#E9DDD3</div>
+                  <div class="swatch dark" style="background:#c4755b">Soft clay<br>#C4755B</div>
+                  <div class="swatch dark" style="background:#72879d">Mild dusk<br>#72879D</div>
+                  <div class="swatch dark" style="background:#4f433d">Roasted bark<br>#4F433D</div>
+                </div>
+              </section>
+              <section class="detail-card" data-od-id="route-be-connect-rules-card">
+                <h3>Usage rules</h3>
+                <ul>
+                  <li>Best used when the phrase can sit beside copy like “Built for reassurance, not surveillance.”</li>
+                  <li>Do not place color-split wordmark inside the app body; it becomes too self-aware.</li>
+                  <li>Prefer symbol-only for launcher icon if this route is chosen.</li>
+                </ul>
+              </section>
+              <section class="detail-card" data-od-id="route-be-connect-image-card">
+                <h3>Image prompts</h3>
+                <ul>
+                  <li>Prompt should emphasize typographic warmth and subtle semantic split.</li>
+                  <li>Keep symbol exploration constrained to rounded monoline forms.</li>
+                  <li>Explicitly forbid hearts, chat bubbles, and dating-app tropes.</li>
+                </ul>
+              </section>
+            </div>
+            <div class="prompt-area" data-od-id="route-be-connect-prompts">
+              <div class="route-label">Generation prompt</div>
+              <textarea class="prompt-box" readonly>Design an original logo direction for Beaconnect that subtly reveals the reading “Be connect” without turning into a slogan. Create a calm lowercase wordmark where the first syllable can be softly differentiated in color at large sizes, paired with a monoline symbol that suggests joining and continuity. Use muted shell, clay, bark, and a very quiet dusk blue accent. The feel should be human, calm, premium, and relationship-first. Avoid hearts, chat bubbles, social-feed cues, radar, map pins, or fintech polish. No gradients, no shine, no neon. Make it suitable for Android onboarding, splash, store listing, and About surfaces; inside the app itself the logo should mostly disappear.</textarea>
+              <div class="prompt-actions">
+                <button class="small-btn" data-copy-target="route-be-connect-prompts">Copy prompt</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="route hidden" data-route-panel="shared-line">
+        <div class="route-grid">
+          <div class="route-visual">
+            <div class="route-art" data-od-id="route-shared-line-art">
+              <div class="route-label">Wordmark</div>
+              <div class="route-wordmark">beaconnect</div>
+              <div class="route-label">Lockup</div>
+              <div class="route-lockup">
+                <span class="symbol-frame" style="width:84px;height:84px;border-radius:22px;">
+                  <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                    <path d="M18 48C27 39 35 35 45 35C54 35 61 38 68 45C73 50 76 52 78 52" stroke="currentColor" stroke-width="10" stroke-linecap="round"></path>
+                    <path d="M18 62C27 53 35 49 45 49C54 49 61 52 68 59C73 64 76 66 78 66" stroke="currentColor" stroke-width="10" stroke-linecap="round" opacity="0.5"></path>
+                  </svg>
+                </span>
+                <span>beaconnect</span>
+              </div>
+              <p class="route-caption">The calmest option: two gently offset shared paths instead of literal people. It feels mature and almost infrastructural, but still soft enough for a trust-based product.</p>
+            </div>
+            <div class="symbol-panel" data-od-id="route-shared-line-symbol">
+              <div class="route-label">Symbol</div>
+              <div class="symbol-frame">
+                <svg viewBox="0 0 96 96" fill="none" aria-hidden="true">
+                  <path d="M18 48C27 39 35 35 45 35C54 35 61 38 68 45C73 50 76 52 78 52" stroke="currentColor" stroke-width="10" stroke-linecap="round"></path>
+                  <path d="M18 62C27 53 35 49 45 49C54 49 61 52 68 59C73 64 76 66 78 66" stroke="currentColor" stroke-width="10" stroke-linecap="round" opacity="0.5"></path>
+                </svg>
+              </div>
+              <div class="route-caption">Good for mature, low-brand expressions. Less emotionally immediate than Route 1.</div>
+            </div>
+          </div>
+          <div class="route-detail">
+            <div class="summary-card" data-od-id="route-shared-line-summary">
+              <h2>Shared Line</h2>
+              <p>The most minimal route. It gives Beaconnect a calm system feel without looking like a utility product. Good if you want the brand to disappear fastest after onboarding.</p>
+              <div class="good-fit">
+                <span class="chip">best for subtle splash use</span>
+                <span class="chip">best for minimal product expression</span>
+                <span class="chip">least expressive for marketing</span>
+              </div>
+            </div>
+            <div class="detail-grid">
+              <section class="detail-card" data-od-id="route-shared-line-wordmark-card">
+                <h3>Wordmark direction</h3>
+                <ul>
+                  <li>Single-color wordmark only; let form carry the personality.</li>
+                  <li>Use medium weight rather than bold to keep the brand recessive.</li>
+                  <li>Pair well with generous whitespace and soft mono supporting labels.</li>
+                </ul>
+              </section>
+              <section class="detail-card" data-od-id="route-shared-line-palette-card">
+                <h3>Palette</h3>
+                <div class="palette-row">
+                  <div class="swatch" style="background:#f5f1eb">Parchment<br>#F5F1EB</div>
+                  <div class="swatch" style="background:#ddd4cb">Stone sand<br>#DDD4CB</div>
+                  <div class="swatch dark" style="background:#866e63">Weathered clay<br>#866E63</div>
+                  <div class="swatch dark" style="background:#8ca59a">Fog sage<br>#8CA59A</div>
+                  <div class="swatch dark" style="background:#403732">Earth ink<br>#403732</div>
+                </div>
+              </section>
+              <section class="detail-card" data-od-id="route-shared-line-rules-card">
+                <h3>Usage rules</h3>
+                <ul>
+                  <li>Use symbol very small on launcher tile and onboarding top edge only.</li>
+                  <li>Never animate the symbol like a signal or heartbeat.</li>
+                  <li>Keep contrast soft; this route works best when understated.</li>
+                </ul>
+              </section>
+              <section class="detail-card" data-od-id="route-shared-line-image-card">
+                <h3>Image prompts</h3>
+                <ul>
+                  <li>Prompt should prioritize restraint and reduced brand volume.</li>
+                  <li>Ask for flat icon tile studies in warm off-white and clay.</li>
+                  <li>Explicitly reject pulse, wave, heartbeat, or Wi-Fi metaphors.</li>
+                </ul>
+              </section>
+            </div>
+            <div class="prompt-area" data-od-id="route-shared-line-prompts">
+              <div class="route-label">Generation prompt</div>
+              <textarea class="prompt-box" readonly>Design a minimal identity for Beaconnect, a reassurance-first relationship app. Create a simple lowercase wordmark and an understated symbol made of two gently offset shared lines, implying two lives moving alongside each other without any map, pulse, heartbeat, Wi-Fi, radar, or tracking cues. The brand should feel calm, dependable, warm, and mature. Palette: parchment, stone, clay, sage, earth ink. Flat surfaces only, moderate rounding, Android-native tone, no gradients, no glossy glass, no social-media energy. The result should be original, quiet, and suitable for launcher icon, splash, About, and onboarding, while receding inside the product UI.</textarea>
+              <div class="prompt-actions">
+                <button class="small-btn" data-copy-target="route-shared-line-prompts">Copy prompt</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="usage-grid" data-od-id="identity-usage-rules">
+      <article class="usage-card">
+        <h3>Where the logo belongs</h3>
+        <ul>
+          <li>Launcher icon</li>
+          <li>Splash screen</li>
+          <li>Onboarding welcome and success</li>
+          <li>About screen and store listing</li>
+        </ul>
+      </article>
+      <article class="usage-card">
+        <h3>Where it should recede</h3>
+        <ul>
+          <li>Home should start with the partner, not the brand</li>
+          <li>Updates should feel like a journal, not a branded feed</li>
+          <li>Trust Center should prioritize explanation over identity</li>
+        </ul>
+      </article>
+      <article class="usage-card">
+        <h3>What to avoid</h3>
+        <ul>
+          <li>Map pins, radar rings, crosshairs, paths ending in targets</li>
+          <li>Hearts, dating-app tropes, chat bubbles, social badges</li>
+          <li>Bright safety orange or alert red unless truly urgent</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="fit-grid" data-od-id="identity-current-artifact-fit">
+      <div class="app-frame">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="status"><span>9:41</span><span>5G · 100%</span></div>
+            <div class="partner-card" data-od-id="fit-home-partner-card">
+              <div class="partner-head">
+                <div class="partner-name">Sarah ★</div>
+                <div class="tiny-symbol" aria-hidden="true">
+                  <svg viewBox="0 0 96 96" width="18" height="18" fill="none">
+                    <rect x="22" y="18" width="22" height="54" rx="11" fill="currentColor" opacity="0.88"></rect>
+                    <rect x="52" y="24" width="22" height="42" rx="11" fill="currentColor" opacity="0.52"></rect>
+                    <path d="M35 78C44 71 52 71 61 78" stroke="currentColor" stroke-width="6" stroke-linecap="round"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="partner-copy">
+                <strong>Everything looks normal.</strong>
+                <span>Updated 2 minutes ago at Home.</span>
+              </div>
+            </div>
+            <div class="cta" data-od-id="fit-home-primary-action">I’m Okay</div>
+            <div class="row">
+              <div class="subcta">Request Check-in</div>
+              <div class="subcta">Start Live</div>
+            </div>
+            <div class="updates">
+              <div class="update"><strong>Checked in</strong><span>Sarah sent “Home now.”</span></div>
+              <div class="update"><strong>Arrived</strong><span>Home saved place · 7:18 PM</span></div>
+            </div>
+            <div class="map"><span>Secondary map preview only — no branding needed here.</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="fit-copy">
+        <div class="eyebrow">Current artifact fit</div>
+        <h2 data-od-id="fit-recommendation-title">Apply Route 1 sparingly, not everywhere.</h2>
+        <p data-od-id="fit-recommendation-body">For the existing Beaconnect screens, use the chosen mark in onboarding, splash, About, and launcher contexts only. Inside the app body, keep the same terracotta/sage system but let the partner card carry the emotional center.</p>
+        <ul>
+          <li>Keep the app title absent on Home.</li>
+          <li>If you need a tiny brand cue in settings, use symbol-only at thumbnail size.</li>
+          <li>Do not introduce the wordmark into the bottom nav or top app chrome.</li>
+          <li>Use the chosen palette to refine onboarding illustration, store listing, and widget setup surfaces.</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const routes = {
+      'pair-light': { accent: '#b56f58' },
+      'be-connect': { accent: '#c4755b' },
+      'shared-line': { accent: '#866e63' }
+    };
+
+    const tabs = Array.from(document.querySelectorAll('.route-tab'));
+    const panels = Array.from(document.querySelectorAll('[data-route-panel]'));
+
+    function activateRoute(route) {
+      document.documentElement.style.setProperty('--route-accent', routes[route].accent);
+      tabs.forEach((tab) => tab.setAttribute('aria-pressed', String(tab.dataset.route === route)));
+      panels.forEach((panel) => panel.classList.toggle('hidden', panel.dataset.routePanel !== route));
+    }
+
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => activateRoute(tab.dataset.route));
+    });
+
+    document.querySelectorAll('[data-copy-target]').forEach((button) => {
+      button.addEventListener('click', async () => {
+        const target = document.querySelector(`[data-od-id="${button.dataset.copyTarget}"] textarea`);
+        if (!target) return;
+        try {
+          await navigator.clipboard.writeText(target.value);
+          const prev = button.textContent;
+          button.textContent = 'Copied';
+          window.setTimeout(() => { button.textContent = prev; }, 1400);
+        } catch {
+          target.focus();
+          target.select();
+        }
+      });
+    });
+
+    activateRoute('pair-light');
+  </script>
+</body>
+</html>

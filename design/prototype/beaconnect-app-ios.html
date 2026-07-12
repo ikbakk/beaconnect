@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Beaconnect — iOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="beaconnect.css">
+  <style>
+    body { background: #e8e4df; min-height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 40px; padding: 40px 24px; }
+
+    .device-wrap {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+    }
+    .device-label {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: #8a8680;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .device-col { display: flex; flex-direction: column; align-items: center; }
+
+    /* iOS Frame */
+    .ios-frame {
+      position: relative;
+      width: 430px;
+      height: 932px;
+      background: #1c1c1e;
+      border-radius: 52px;
+      padding: 12px;
+      box-shadow: 0 0 0 1px #3a3a3c, 0 40px 80px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(255,255,255,0.05);
+      flex-shrink: 0;
+    }
+    .ios-screen {
+      width: 100%;
+      height: 100%;
+      background: var(--bcg-surface);
+      border-radius: 40px;
+      overflow: hidden;
+      position: relative;
+    }
+    .ios-dynamic-island {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 36px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 50;
+    }
+    .ios-status-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 54px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding: 0 28px 10px;
+      z-index: 10;
+      pointer-events: none;
+    }
+    .ios-status-bar__time { font-size: 15px; font-weight: 600; color: var(--bcg-fg); letter-spacing: -0.01em; }
+    .ios-status-bar__icons { display: flex; align-items: center; gap: 4px; }
+    .ios-home-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 134px;
+      height: 5px;
+      background: #3a3a3c;
+      border-radius: 3px;
+      z-index: 10;
+    }
+
+    /* Inner layout */
+    .inner-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--bcg-surface);
+    }
+    .inner-scroll {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+    .inner-scroll::-webkit-scrollbar { display: none; }
+    .app-screen { display: none; flex-direction: column; flex: 1; }
+    .app-screen.is-active { display: flex; }
+
+    /* Content padding for iOS (Dynamic Island + status bar) */
+    .ios-content { padding-top: 54px; }
+    .ios-content.with-header { padding-top: 96px; }
+    .ios-content.with-nav { padding-bottom: 34px; }
+
+    /* Home */
+    .home-hero { padding: 20px 20px 0; }
+    .home-partner-card-wrap { padding: 0 20px; }
+    .home-cta { padding: 20px 20px 0; }
+    .home-quick-actions { padding: 12px 20px 0; display: flex; gap: 10px; }
+    .home-recent { padding: 20px 20px 0; }
+    .home-map-wrap { padding: 16px 20px 20px; }
+    .home-view-all { padding: 8px 20px 20px; text-align: center; }
+    .recent-updates-label {
+      font-family: var(--bcg-font-mono);
+      font-size: 11px; font-weight: 500;
+      color: var(--bcg-fg-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .recent-update-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: var(--bcg-surface-variant);
+      border-radius: var(--bcg-r-md);
+      margin-bottom: 8px;
+    }
+    .recent-update-chip__icon {
+      width: 28px; height: 28px;
+      border-radius: var(--bcg-r-sm);
+      background: var(--bcg-surface);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .recent-update-chip__icon svg { width: 14px; height: 14px; color: var(--bcg-fg-muted); }
+    .recent-update-chip__text { font-size: 13px; color: var(--bcg-fg); line-height: 1.3; flex: 1; }
+    .recent-update-chip__time { font-family: var(--bcg-font-mono); font-size: 10px; color: var(--bcg-fg-muted); flex-shrink: 0; }
+
+    /* Updates */
+    .updates-content { padding: 0 0 20px; }
+    .updates-empty { padding: 60px 20px; text-align: center; }
+    .updates-empty__icon { width: 56px; height: 56px; background: var(--bcg-surface-variant); border-radius: var(--bcg-r-lg); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .updates-empty__icon svg { width: 28px; height: 28px; color: var(--bcg-fg-muted); }
+    .updates-empty__title { font-size: 16px; font-weight: 600; color: var(--bcg-fg); margin-bottom: 6px; }
+    .updates-empty__sub { font-size: 13px; color: var(--bcg-fg-muted); line-height: 1.5; }
+
+    /* Settings */
+    .settings-hero { padding: 20px 20px 16px; border-bottom: 1px solid var(--bcg-outline); }
+    .settings-hero__title { font-family: var(--bcg-font-display); font-size: 22px; font-weight: 800; color: var(--bcg-fg); letter-spacing: -0.03em; }
+    .settings-hero__sub { font-size: 14px; color: var(--bcg-fg-muted); margin-top: 4px; }
+    .settings-section { margin-bottom: 8px; }
+    .settings-section__header { font-family: var(--bcg-font-mono); font-size: 11px; font-weight: 500; color: var(--bcg-fg-muted); text-transform: uppercase; letter-spacing: 0.08em; padding: 12px 20px 6px; }
+    .settings-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 120ms;
+      background: transparent; border: none;
+      width: 100%; text-align: left;
+    }
+    .settings-row:hover { background: var(--bcg-surface-variant); }
+    .settings-row__icon { width: 36px; height: 36px; border-radius: var(--bcg-r-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--bcg-surface-variant); color: var(--bcg-fg); }
+    .settings-row__icon svg { width: 18px; height: 18px; }
+    .settings-row__icon--primary { background: var(--bcg-primary); color: var(--bcg-primary-fg); }
+    .settings-row__icon--success { background: var(--bcg-success-bg); color: var(--bcg-success); }
+    .settings-row__body { flex: 1; min-width: 0; }
+    .settings-row__label { font-size: 15px; font-weight: 500; color: var(--bcg-fg); }
+    .settings-row__sub { font-size: 13px; color: var(--bcg-fg-muted); margin-top: 1px; }
+    .settings-row__trail { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .settings-row__chevron { width: 16px; height: 16px; color: var(--bcg-outline-strong); }
+    .settings-about { padding: 16px 20px; text-align: center; font-size: 12px; color: var(--bcg-fg-muted); line-height: 1.5; }
+
+    /* Trust Center */
+    .tc-header { padding: 12px 20px 16px; border-bottom: 1px solid var(--bcg-outline); }
+    .tc-header__label { font-family: var(--bcg-font-mono); font-size: 11px; font-weight: 500; color: var(--bcg-fg-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .tc-header__title { font-family: var(--bcg-font-display); font-size: 22px; font-weight: 800; color: var(--bcg-fg); letter-spacing: -0.03em; }
+    .tc-section { border-bottom: 1px solid var(--bcg-outline); }
+    .tc-section-content { padding: 0 20px 16px; }
+    .tc-section__title { font-size: 15px; font-weight: 600; color: var(--bcg-fg); margin-bottom: 6px; padding-top: 16px; }
+    .tc-section__desc { font-size: 13px; color: var(--bcg-fg-muted); line-height: 1.55; margin-bottom: 12px; }
+    .tc-section__status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px; background: var(--bcg-surface-variant); border-radius: 999px; margin-bottom: 12px; }
+    .tc-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .tc-dot--ok { background: var(--bcg-success); }
+    .tc-dot--warn { background: var(--bcg-caution); }
+    .tc-dot--info { background: var(--bcg-info); }
+    .tc-action { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--bcg-primary); background: transparent; border: none; padding: 0; cursor: pointer; font-family: var(--bcg-font-body); margin-bottom: 16px; transition: opacity 120ms; }
+    .tc-action:hover { opacity: 0.75; }
+    .tc-handbook-item { background: var(--bcg-surface-variant); border-radius: var(--bcg-r-md); padding: 12px 14px; margin-bottom: 8px; font-size: 13px; color: var(--bcg-fg-muted); line-height: 1.5; }
+    .tc-handbook-item__q { font-weight: 600; color: var(--bcg-fg); margin-bottom: 4px; }
+
+    /* My Beacon */
+    .mb-section { border-bottom: 1px solid var(--bcg-outline); }
+    .mb-module { padding: 14px 20px; }
+    .mb-module__label { font-size: 14px; font-weight: 600; color: var(--bcg-fg); margin-bottom: 4px; }
+    .mb-module__desc { font-size: 13px; color: var(--bcg-fg-muted); margin-bottom: 8px; line-height: 1.4; }
+    .mb-module__current { font-size: 13px; color: var(--bcg-fg-muted); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+    .mb-chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: var(--bcg-surface-variant); border-radius: var(--bcg-r-sm); font-size: 12px; font-weight: 500; color: var(--bcg-fg); }
+    .mb-customize { font-size: 14px; font-weight: 600; color: var(--bcg-primary); background: transparent; border: none; padding: 0; cursor: pointer; font-family: var(--bcg-font-body); }
+
+    /* iOS Tab Bar */
+    .ios-tab-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 83px;
+      background: var(--bcg-surface-overlay);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: stretch;
+      padding-top: 10px;
+      z-index: 20;
+    }
+    .ios-tab-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--bcg-fg-muted);
+      font-family: var(--bcg-font-body);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      transition: color var(--bcg-t-fast) var(--bcg-ease-out);
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .ios-tab-item::before {
+      content: '';
+      position: absolute;
+      top: 4px; bottom: 4px;
+      left: 10px; right: 10px;
+      border-radius: var(--bcg-r-full, 999px);
+      background: transparent;
+      transition: background var(--bcg-t-mid) var(--bcg-ease-out);
+    }
+    .ios-tab-item.is-active {
+      color: var(--bcg-primary);
+      font-weight: 600;
+    }
+    .ios-tab-item.is-active::before {
+      background: color-mix(in oklch, var(--bcg-primary) 14%, transparent);
+    }
+    .ios-tab-icon { width: 24px; height: 24px; flex-shrink: 0; }
+    .ios-tab-bar-spacer { height: 34px; pointer-events: none; }
+
+    /* Sheet */
+    .sheet-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.38); z-index: 30; opacity: 0; pointer-events: none; transition: opacity 220ms cubic-bezier(0.22,1,0.36,1); }
+    .sheet-overlay.is-open { opacity: 1; pointer-events: auto; }
+    .sheet { position: absolute; bottom: 0; left: 0; right: 0; background: var(--bcg-surface); border-radius: 20px 20px 0 0; border-top: 1px solid var(--bcg-outline); padding: 0 20px 48px; z-index: 31; transform: translateY(100%); transition: transform 260ms cubic-bezier(0.22,1,0.36,1); }
+    .sheet.is-open { transform: translateY(0); }
+    .sheet__handle { width: 36px; height: 4px; border-radius: 2px; background: var(--bcg-outline-strong); margin: 10px auto 16px; }
+    .sheet__title { font-size: 16px; font-weight: 700; color: var(--bcg-fg); margin-bottom: 8px; }
+    .sheet__body { font-size: 14px; color: var(--bcg-fg-muted); line-height: 1.6; margin-bottom: 16px; }
+    .sheet__detail { font-size: 13px; color: var(--bcg-fg-muted); line-height: 1.5; margin-bottom: 4px; }
+    .sheet__detail strong { color: var(--bcg-fg); }
+    .sheet__actions { display: flex; gap: 10px; margin-top: 16px; }
+
+    /* Toast */
+    .toast { position: absolute; bottom: 90px; left: 16px; right: 16px; background: var(--bcg-fg); color: var(--bcg-surface); font-size: 14px; font-weight: 500; padding: 10px 16px; border-radius: 12px; z-index: 50; text-align: center; transform: translateY(12px); opacity: 0; pointer-events: none; transition: transform 220ms cubic-bezier(0.22,1,0.36,1), opacity 220ms; }
+    .toast.is-visible { transform: translateY(0); opacity: 1; }
+
+    /* Onboarding */
+    .ob-screen { position: absolute; inset: 0; background: var(--bcg-surface); display: none; flex-direction: column; }
+    .ob-screen.is-active { display: flex; }
+    .ob-top { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 48px 28px 24px; }
+    .ob-eyebrow { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: var(--bcg-primary); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+    .ob-headline { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 26px; font-weight: 800; color: var(--bcg-fg); line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 12px; }
+    .ob-body { font-size: 15px; color: var(--bcg-fg-muted); line-height: 1.65; margin-bottom: 20px; }
+    .ob-note { font-size: 13px; color: var(--bcg-fg-muted); line-height: 1.55; background: var(--bcg-surface-variant); padding: 12px 14px; border-radius: 12px; border-left: 3px solid var(--bcg-primary); margin-top: auto; }
+    .ob-note--warn { border-left-color: var(--bcg-caution); background: var(--bcg-caution-bg); }
+    .ob-actions { padding: 16px 24px 36px; }
+    .ob-dots { display: flex; gap: 6px; justify-content: center; margin-bottom: 16px; }
+    .ob-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--bcg-outline-strong); transition: all 220ms; }
+    .ob-dot.is-active { width: 20px; border-radius: 3px; background: var(--bcg-primary); }
+    .ob-icon-center { width: 72px; height: 72px; background: var(--bcg-primary); border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px; }
+    .ob-icon-center svg { width: 36px; height: 36px; color: var(--bcg-primary-fg); }
+    .ob-icon-center--success { background: var(--bcg-success-bg); }
+    .ob-icon-center--success svg { color: var(--bcg-success); }
+    .ob-check-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+    .ob-check { width: 20px; height: 20px; border-radius: 50%; background: var(--bcg-success-bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+    .ob-check svg { width: 12px; height: 12px; color: var(--bcg-success); }
+    .ob-check-text { font-size: 14px; color: var(--bcg-fg); line-height: 1.4; }
+
+    /* Onboarding wrap */
+    .onboarding-wrap { padding: 40px 24px; background: #e8e4df; min-height: 100vh; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+    .perm-card { background: var(--bcg-surface-variant); border-radius: var(--bcg-r-md); padding: 14px; margin-bottom: 10px; }
+    .perm-card__q { font-size: 13px; font-weight: 600; color: var(--bcg-fg); margin-bottom: 4px; }
+    .perm-card__a { font-size: 13px; color: var(--bcg-fg-muted); line-height: 1.5; margin-bottom: 10px; }
+    .perm-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; margin-bottom: 10px; }
+    .perm-badge--ok { background: var(--bcg-success-bg); color: var(--bcg-success); }
+    .perm-badge--warn { background: var(--bcg-caution-bg); color: var(--bcg-caution); }
+
+    /* Widget */
+    .widget-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 40px 24px; background: #e8e4df; min-height: 100vh; }
+    .device-label { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #8a8680; text-transform: uppercase; letter-spacing: 0.08em; }
+    .beaconnect-widget { width: 430px; height: 148px; background: var(--bcg-surface); border-radius: 20px; border: 1px solid var(--bcg-outline); padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; overflow: hidden; box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06); }
+    .beaconnect-widget__partner { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 700; color: var(--bcg-fg); display: flex; align-items: center; gap: 6px; }
+    .beaconnect-widget__status { font-size: 14px; font-weight: 500; color: var(--bcg-fg); line-height: 1.3; }
+    .beaconnect-widget__fresh { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--bcg-fg-muted); }
+    .beaconnect-widget__action { margin-top: auto; }
+    .beaconnect-widget .bcg-btn--primary { width: auto; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; font-size: 14px; font-weight: 600; border-radius: 14px; }
+    .widget-ios-preview { background: #f5f3ef; border-radius: 8px; padding: 8px; border: 1px solid var(--bcg-outline); }
+    .widget-ios-preview .beaconnect-widget { width: 206px; height: 80px; border-radius: 16px; padding: 10px 12px; gap: 4px; }
+    .widget-ios-preview .beaconnect-widget__partner { font-size: 12px; }
+    .widget-ios-preview .beaconnect-widget__status { font-size: 11px; }
+    .widget-ios-preview .beaconnect-widget__fresh { font-size: 9px; }
+    .widget-ios-preview .beaconnect-widget .bcg-btn--primary { padding: 7px 10px; font-size: 10px; border-radius: 8px; }
+
+    /* Nav */
+    .demo-nav { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(26,18,12,0.88); backdrop-filter: blur(12px); border-radius: 16px; padding: 8px 12px; display: flex; gap: 4px; z-index: 1000; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .demo-nav__btn { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.6); background: transparent; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; transition: all 120ms; white-space: nowrap; }
+    .demo-nav__btn.is-active { background: rgba(255,255,255,0.15); color: #fff; }
+    .demo-nav__btn:hover { color: #fff; }
+
+    .pressable { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  </style>
+</head>
+<body>
+
+<!-- Demo nav -->
+<nav class="demo-nav" id="demo-nav-ios">
+  <button class="demo-nav__btn is-active" onclick="showSectionIos('home')">Home</button>
+  <button class="demo-nav__btn" onclick="showSectionIos('updates')">Updates</button>
+  <button class="demo-nav__btn" onclick="showSectionIos('settings')">Settings</button>
+  <button class="demo-nav__btn" onclick="showSectionIos('trust-center')">Trust Center</button>
+  <button class="demo-nav__btn" onclick="showSectionIos('my-beacon')">My Beacon</button>
+  <button class="demo-nav__btn" onclick="showSectionIos('onboarding')">Onboarding</button>
+  <button class="demo-nav__btn" onclick="showSectionIos('widget')">Widget</button>
+</nav>
+
+
+<!-- ── iOS App ── -->
+<div class="device-wrap" id="device-ios-app">
+  <div class="device-col">
+    <span class="device-label">iOS — iPhone 15 Pro</span>
+    <div class="ios-frame">
+      <div class="ios-dynamic-island"></div>
+      <div class="ios-screen">
+
+        <!-- Status bar -->
+        <div class="ios-status-bar">
+          <span class="ios-status-bar__time">9:41</span>
+          <div class="ios-status-bar__icons">
+            <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><rect x="1" y="9" width="2.5" height="5" rx="0.5" fill-opacity="0.9"/><rect x="5" y="6.5" width="2.5" height="7.5" rx="0.5" fill-opacity="0.9"/><rect x="9" y="4" width="2.5" height="10" rx="0.5" fill-opacity="0.9"/><rect x="13" y="1.5" width="2.5" height="12.5" rx="0.5" fill-opacity="0.9"/></svg>
+            <svg viewBox="0 0 24 14" width="22" height="13" fill="none"><rect x="0.5" y="1.5" width="19" height="11" rx="3" stroke="currentColor" stroke-width="1.2" fill-opacity="0.9"/><rect x="20" y="4.5" width="3" height="5" rx="1" fill="currentColor" fill-opacity="0.9"/><rect x="2.5" y="3.5" width="13" height="7" rx="1.5" fill="currentColor" fill-opacity="0.9"/></svg>
+          </div>
+        </div>
+
+        <div class="inner-content">
+
+          <!-- HOME -->
+          <div class="app-screen is-active" id="ios-home">
+            <div class="inner-scroll ios-content ios-content with-nav" style="padding-bottom:0;">
+              <div class="home-hero">
+                <div class="home-partner-card-wrap">
+                  <div class="bcg-partner-card" data-od-id="partner-card">
+                    <div class="bcg-partner-card__name">Sarah <span class="bcg-partner-card__symbol">★</span></div>
+                    <div class="bcg-partner-card__status" id="ios-card-status">Everything looks normal.</div>
+                    <div class="bcg-partner-card__freshness" id="ios-card-freshness">Updated 2 minutes ago at Home.</div>
+                    <div id="ios-card-badge"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="home-cta">
+                <button class="bcg-btn bcg-btn--primary" id="ios-okay-btn" onclick="handleCheckInIos()">I'm Okay</button>
+              </div>
+              <div class="home-quick-actions">
+                <button class="bcg-btn bcg-btn--secondary" onclick="showToastIos('Request sent')">
+                  <svg class="bcg-btn__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 10 L10 5 M10 10 L6 14 M10 10 L14 14"/><circle cx="10" cy="10" r="8"/></svg>
+                  Request Check-in
+                </button>
+                <button class="bcg-btn bcg-btn--secondary" onclick="showToastIos('Sharing is currently paused')">
+                  <svg class="bcg-btn__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7.5 C4 5 6 3.5 8 4 L8.5 4.2 C9.8 4.8 11 6 11.5 7.5 L12 9.5 C12.5 11.2 11.5 13 10 13.5 L8 14"/><circle cx="14" cy="5.5" r="2.5"/></svg>
+                  Start Live
+                </button>
+              </div>
+              <div class="home-recent">
+                <div class="recent-updates-label">Recent updates</div>
+                <div class="recent-update-chip">
+                  <div class="recent-update-chip__icon">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 2.5 C5.5 2.5 3.5 4.5 3.5 7 C3.5 9.5 5.5 11.5 8 11.5 C10.5 11.5 12.5 9.5 12.5 7 C12.5 4.5 10.5 2.5 8 2.5Z"/><path d="M6 7 L7 8 L10 5"/></svg>
+                  </div>
+                  <span class="recent-update-chip__text">Sarah checked in</span>
+                  <span class="recent-update-chip__time">18m</span>
+                </div>
+                <div class="recent-update-chip">
+                  <div class="recent-update-chip__icon">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5 L8 8.5 L10 10.5"/></svg>
+                  </div>
+                  <span class="recent-update-chip__text">Arrived at Home</span>
+                  <span class="recent-update-chip__time">1h</span>
+                </div>
+              </div>
+              <div class="home-map-wrap">
+                <div class="bcg-map-preview" onclick="showToastIos('Map opens in full app')">
+                  <div style="position:absolute;inset:0;background:linear-gradient(160deg,#f0ece6 0%,#e8e4dd 40%,#ddd8cf 100%);display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                    <svg width="100%" height="100%" viewBox="0 0 390 160" fill="none">
+                      <path d="M0 100 Q60 80 120 95 Q180 110 240 88 Q300 70 360 85 L390 82 L390 160 L0 160Z" fill="#d5d0c8" fill-opacity="0.7"/>
+                      <path d="M50 40 Q80 30 120 38 Q160 46 200 35 Q240 24 280 32 L320 28 L340 35 L330 70 Q300 62 260 68 Q220 74 180 64 Q140 54 100 62 Q60 70 40 60 L50 40Z" fill="#cac5bd" fill-opacity="0.5"/>
+                      <path d="M30 120 Q90 108 150 118 Q210 128 270 112 Q330 100 390 108" stroke="#c8c3bb" stroke-width="4" fill="none" stroke-linecap="round"/>
+                      <path d="M30 120 Q90 108 150 118 Q210 128 270 112 Q330 100 390 108" stroke="#e0dbd3" stroke-width="2" fill="none" stroke-linecap="round" stroke-dasharray="8 6"/>
+                      <ellipse cx="280" cy="60" rx="40" ry="25" fill="#c8d4c0" fill-opacity="0.6"/>
+                      <ellipse cx="120" cy="55" rx="30" ry="18" fill="#c8d4c0" fill-opacity="0.5"/>
+                      <circle cx="200" cy="85" r="8" fill="#8fb88a" fill-opacity="0.8"/>
+                      <circle cx="200" cy="85" r="4" fill="#6a9e62"/>
+                      <circle cx="95" cy="118" r="6" fill="#b8a898"/>
+                      <circle cx="95" cy="118" r="3" fill="#9a8a78"/>
+                    </svg>
+                  </div>
+                  <div class="bcg-map-preview__label">Near Home · 0.4 km apart</div>
+                </div>
+              </div>
+              <div class="home-view-all">
+                <button class="bcg-btn bcg-btn--link" onclick="showSectionIos('updates')">View all updates →</button>
+              </div>
+            </div><!-- /scroll -->
+            <div class="ios-tab-bar" id="ios-tab-bar-home">
+              <button class="ios-tab-item is-active" onclick="showSectionIos('home')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3 12 L12 3 L21 12 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 V12 Z"/><path d="M9 21 V14 H15 V21" fill="currentColor"/></svg>
+                Home
+              </button>
+              <button class="ios-tab-item" onclick="showSectionIos('updates')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2 C6.5 2 2 6.5 2 12 C2 17.5 6.5 22 12 22"/><path d="M12 22 C17.5 22 22 17.5 22 12 C22 6.5 17.5 2 12 2"/><path d="M22 12 L17 12 M22 12 L19 9"/><path d="M12 8 L12 12 L15 15"/></svg>
+                Updates
+              </button>
+              <button class="ios-tab-item" onclick="showSectionIos('settings')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2 V4.5 M12 19.5 V22 M4.22 4.22 L6.34 6.34 M17.66 17.66 L19.78 19.78 M2 12 H4.5 M19.5 12 H22 M4.22 19.78 L6.34 17.66 M17.66 6.34 L19.78 4.22"/></svg>
+                Settings
+              </button>
+            </div>
+            <div class="toast" id="ios-toast"></div>
+          </div><!-- /home -->
+
+
+          <!-- UPDATES -->
+          <div class="app-screen" id="ios-updates">
+            <div class="inner-scroll ios-content with-nav">
+              <div style="position:absolute;top:54px;left:0;right:0;background:var(--bcg-surface);z-index:5;padding:12px 20px 12px;border-bottom:1px solid var(--bcg-outline);">
+                <div style="font-family:var(--bcg-font-display);font-size:18px;font-weight:700;color:var(--bcg-fg);letter-spacing:-0.02em;">Updates</div>
+                <div style="font-size:13px;color:var(--bcg-fg-muted);margin-top:2px;">Meaningful moments since you last looked</div>
+              </div>
+              <div class="updates-content" style="padding-top:68px;">
+                <div class="bcg-timeline-group">
+                  <div class="bcg-timeline-group__label">Today</div>
+                  <div class="bcg-timeline-sub">Morning</div>
+                  <div class="bcg-update-item pressable" onclick="openSheetIos('checkin-detail')">
+                    <div class="bcg-update-item__icon" style="background:var(--bcg-success-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--bcg-success)" stroke-width="1.6" stroke-linecap="round"><path d="M3 8 L6.5 11.5 L13 4.5"/></svg></div>
+                    <div class="bcg-update-item__body">
+                      <div class="bcg-update-item__title">Sarah checked in</div>
+                      <div class="bcg-update-item__desc">Sarah let you know she's around.</div>
+                    </div>
+                    <div><div class="bcg-update-item__time">8:23 AM</div><svg class="bcg-update-item__arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3 L11 8 L6 13"/></svg></div>
+                  </div>
+                  <div class="bcg-timeline-sub">Afternoon</div>
+                  <div class="bcg-update-item pressable" onclick="openSheetIos('arrival-detail')">
+                    <div class="bcg-update-item__icon"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 12 L8 3 L13 12 Z"/><path d="M5.5 9 H10.5 V13 H5.5 Z"/></svg></div>
+                    <div class="bcg-update-item__body">
+                      <div class="bcg-update-item__title">Arrived at Home</div>
+                      <div class="bcg-update-item__desc">Sarah arrived home after work.</div>
+                    </div>
+                    <div><div class="bcg-update-item__time">5:12 PM</div><svg class="bcg-update-item__arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3 L11 8 L6 13"/></svg></div>
+                  </div>
+                  <div class="bcg-update-item pressable" onclick="openSheetIos('live-ended-detail')">
+                    <div class="bcg-update-item__icon" style="background:var(--bcg-info-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--bcg-info)" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 5 L8 8.5 L10.5 10.5"/></svg></div>
+                    <div class="bcg-update-item__body">
+                      <div class="bcg-update-item__title">Live sharing ended</div>
+                      <div class="bcg-update-item__desc">Sarah's live sharing ended after 28 minutes.</div>
+                    </div>
+                    <div><div class="bcg-update-item__time">3:45 PM</div><svg class="bcg-update-item__arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3 L11 8 L6 13"/></svg></div>
+                  </div>
+                </div>
+                <div class="bcg-timeline-group">
+                  <div class="bcg-timeline-group__label">Yesterday</div>
+                  <div class="bcg-timeline-sub">Evening</div>
+                  <div class="bcg-update-item pressable" onclick="openSheetIos('reaction-detail')">
+                    <div class="bcg-update-item__icon" style="background:var(--bcg-caution-bg);"><svg viewBox="0 0 16 16" fill="none" stroke="var(--bcg-caution)" stroke-width="1.5" stroke-linecap="round"><path d="M8 14 C5 11 2 9 2 6.5 C2 4.5 3.8 3 6 3 C7.2 3 8.2 3.6 8.8 4.5"/><circle cx="11.5" cy="5.5" r="1"/></svg></div>
+                    <div class="bcg-update-item__body">
+                      <div class="bcg-update-item__title">Sarah reacted</div>
+                      <div class="bcg-update-item__desc">"Glad you're around" — from earlier check-in.</div>
+                    </div>
+                    <div><div class="bcg-update-item__time">9:02 PM</div><svg class="bcg-update-item__arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3 L11 8 L6 13"/></svg></div>
+                  </div>
+                </div>
+                <div class="bcg-end-copy">That's everything for today.<br>We'll keep you updated when something meaningful happens.</div>
+              </div>
+            </div>
+            <div class="ios-tab-bar">
+              <button class="ios-tab-item" onclick="showSectionIos('home')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12 L12 3 L21 12 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 V12 Z"/><path d="M9 21 V14 H15 V21" fill="currentColor"/></svg>
+                Home
+              </button>
+              <button class="ios-tab-item is-active">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 C6.5 2 2 6.5 2 12 C2 17.5 6.5 22 12 22 C17.5 22 22 17.5 22 12 C22 6.5 17.5 2 12 2Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M22 12 L17 12 M22 12 L19 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 8 L12 12 L15 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Updates
+              </button>
+              <button class="ios-tab-item" onclick="showSectionIos('settings')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2 V4.5 M12 19.5 V22 M4.22 4.22 L6.34 6.34 M17.66 17.66 L19.78 19.78 M2 12 H4.5 M19.5 12 H22 M4.22 19.78 L6.34 17.66 M17.66 6.34 L19.78 4.22"/></svg>
+                Settings
+              </button>
+            </div>
+          </div><!-- /updates -->
+
+
+          <!-- SETTINGS -->
+          <div class="app-screen" id="ios-settings">
+            <div class="inner-scroll ios-content with-nav">
+              <div class="settings-hero">
+                <div class="settings-hero__title">Settings</div>
+                <div class="settings-hero__sub">Trust Center and My Beacon</div>
+              </div>
+              <div class="settings-section">
+                <div class="settings-section__header">Relationship</div>
+                <button class="settings-row" onclick="showSectionIos('trust-center')">
+                  <div class="settings-row__icon settings-row__icon--primary"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 L13 7 L18 8 L14 12 L15 17 L10 15 L5 17 L6 12 L2 8 L7 7 Z"/></svg></div>
+                  <div class="settings-row__body">
+                    <div class="settings-row__label">Trust Center</div>
+                    <div class="settings-row__sub">Sharing, privacy, and how Beaconnect works</div>
+                  </div>
+                  <div class="settings-row__trail"><svg class="settings-row__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3 L11 8 L6 13"/></svg></div>
+                </button>
+              </div>
+              <div class="settings-section">
+                <div class="settings-section__header">Personal</div>
+                <button class="settings-row" onclick="showSectionIos('my-beacon')">
+                  <div class="settings-row__icon settings-row__icon--success"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="4"/><path d="M10 2 V5 M10 15 V18 M18 10 H15 M5 10 H2 M15.5 4.5 L13.2 6.8 M6.8 13.2 L4.5 15.5 M15.5 15.5 L13.2 13.2 M6.8 6.8 L4.5 4.5"/></svg></div>
+                  <div class="settings-row__body">
+                    <div class="settings-row__label">My Beacon</div>
+                    <div class="settings-row__sub">Personalize your experience</div>
+                  </div>
+                  <div class="settings-row__trail"><svg class="settings-row__chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3 L11 8 L6 13"/></svg></div>
+                </button>
+              </div>
+              <div class="settings-section">
+                <div class="settings-section__header">About</div>
+                <button class="settings-row" onclick="showToastIos('Version 1.0.0')">
+                  <div class="settings-row__icon"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="8"/><path d="M10 9 L10 14"/><circle cx="10" cy="6.5" r="0.8" fill="currentColor"/></svg></div>
+                  <div class="settings-row__body">
+                    <div class="settings-row__label">About Beaconnect</div>
+                    <div class="settings-row__sub">Version 1.0.0</div>
+                  </div>
+                </button>
+              </div>
+              <div class="settings-about">Built for reassurance, not surveillance.</div>
+            </div>
+            <div class="ios-tab-bar">
+              <button class="ios-tab-item" onclick="showSectionIos('home')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12 L12 3 L21 12 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 V12 Z"/><path d="M9 21 V14 H15 V21" fill="currentColor"/></svg>
+                Home
+              </button>
+              <button class="ios-tab-item" onclick="showSectionIos('updates')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2 C6.5 2 2 6.5 2 12 C2 17.5 6.5 22 12 22"/><path d="M12 22 C17.5 22 22 17.5 22 12 C22 6.5 17.5 2 12 2"/><path d="M22 12 L17 12 M22 12 L19 9"/><path d="M12 8 L12 12 L15 15"/></svg>
+                Updates
+              </button>
+              <button class="ios-tab-item is-active">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2 V4.5 M12 19.5 V22 M4.22 4.22 L6.34 6.34 M17.66 17.66 L19.78 19.78 M2 12 H4.5 M19.5 12 H22 M4.22 19.78 L6.34 17.66 M17.66 6.34 L19.78 4.22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+                Settings
+              </button>
+            </div>
+          </div><!-- /settings -->
+
+
+          <!-- TRUST CENTER -->
+          <div class="app-screen" id="ios-trust-center">
+            <div class="inner-scroll ios-content with-nav">
+              <div class="tc-header">
+                <button class="bcg-btn bcg-btn--ghost" style="margin-bottom:8px;padding:4px 0;" onclick="showSectionIos('settings')">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3 L5 8 L10 13"/></svg>
+                  Settings
+                </button>
+                <div class="tc-header__label">Trust Center</div>
+                <div class="tc-header__title">Can I trust Beaconnect?</div>
+              </div>
+              <div class="tc-section"><div class="tc-section-content">
+                <div class="tc-section__title">Our Connection</div>
+                <div class="tc-section__desc">You and Sarah are connected through mutual sharing. Connections are always voluntary and can be ended at any time by either person.</div>
+                <div class="tc-section__status"><span class="tc-dot tc-dot--ok"></span>Connected since March 2024</div>
+              </div></div>
+              <div class="tc-section"><div class="tc-section-content">
+                <div class="tc-section__title">Sharing</div>
+                <div class="tc-section__desc">Beaconnect only shares what both people choose. Check-ins are intentional — one person presses a button and the other sees it. Live sharing is temporary and ends automatically.</div>
+                <div class="tc-section__status"><span class="tc-dot tc-dot--ok"></span>Mutual sharing active</div>
+              </div></div>
+              <div class="tc-section"><div class="tc-section-content">
+                <div class="tc-section__title">Privacy</div>
+                <div class="tc-section__desc">Your updates are visible only to your partner — not to Beaconnect, not to anyone else. Detailed location is kept private and shared only when earned.</div>
+                <div class="tc-section__status"><span class="tc-dot tc-dot--ok"></span>Private by design</div>
+              </div></div>
+              <div class="tc-section"><div class="tc-section-content">
+                <div class="tc-section__title">History</div>
+                <div class="tc-section__desc">Detailed updates are kept for 3 days. After that, they're summarized into a monthly overview. Both people can delete history — it requires both to agree.</div>
+                <div class="tc-section__status"><span class="tc-dot tc-dot--info"></span>3-day detail window</div>
+              </div></div>
+              <div class="tc-section"><div class="tc-section-content">
+                <div class="tc-section__title">Permissions</div>
+                <div class="tc-section__desc">Beaconnect needs access to your location when you choose to share — not all the time, just when live sharing is on.</div>
+                <div class="tc-section__status"><span class="tc-dot tc-dot--ok"></span>Location sharing on</div>
+                <button class="tc-action" onclick="showToastIos('Opens system settings')">Manage →</button>
+              </div></div>
+              <div class="tc-section"><div class="tc-section-content">
+                <div class="tc-section__title">How Beaconnect Works</div>
+                <div class="tc-handbook-item"><div class="tc-handbook-item__q">Why is live sharing temporary?</div>Live sharing shows where you are while you're actively sharing — it ends automatically so neither person feels watched.</div>
+                <div class="tc-handbook-item"><div class="tc-handbook-item__q">Why not every movement is shown</div>Seeing every step creates anxiety for both people. Beaconnect shows meaningful moments, not a running log.</div>
+                <div class="tc-handbook-item"><div class="tc-handbook-item__q">Why consent matters</div>Beaconnect only works when both people agree. Either person can end the connection at any time.</div>
+              </div></div>
+            </div>
+            <div class="ios-tab-bar">
+              <button class="ios-tab-item" onclick="showSectionIos('home')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12 L12 3 L21 12 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 V12 Z"/><path d="M9 21 V14 H15 V21" fill="currentColor"/></svg>
+                Home
+              </button>
+              <button class="ios-tab-item" onclick="showSectionIos('updates')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2 C6.5 2 2 6.5 2 12 C2 17.5 6.5 22 12 22"/><path d="M12 22 C17.5 22 22 17.5 22 12 C22 6.5 17.5 2 12 2"/><path d="M22 12 L17 12 M22 12 L19 9"/><path d="M12 8 L12 12 L15 15"/></svg>
+                Updates
+              </button>
+              <button class="ios-tab-item is-active" onclick="showSectionIos('settings')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2 V4.5 M12 19.5 V22 M4.22 4.22 L6.34 6.34 M17.66 17.66 L19.78 19.78 M2 12 H4.5 M19.5 12 H22 M4.22 19.78 L6.34 17.66 M17.66 6.34 L19.78 4.22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+                Settings
+              </button>
+            </div>
+          </div><!-- /trust-center -->
+
+
+          <!-- MY BEACON -->
+          <div class="app-screen" id="ios-my-beacon">
+            <div class="inner-scroll ios-content with-nav">
+              <div class="tc-header">
+                <button class="bcg-btn bcg-btn--ghost" style="margin-bottom:8px;padding:4px 0;" onclick="showSectionIos('settings')">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3 L5 8 L10 13"/></svg>
+                  Settings
+                </button>
+                <div class="tc-header__label">My Beacon</div>
+                <div class="tc-header__title">Personalize your experience</div>
+              </div>
+              <div class="mb-section"><div class="mb-module">
+                <div class="mb-module__label">Check-in Messages</div>
+                <div class="mb-module__desc">Personalize the short messages used when you check in.</div>
+                <div class="mb-module__current">Currently using: <span class="mb-chip">"I'm Okay"</span><span class="mb-chip">"I'm around"</span><span class="mb-chip">+ 4 more</span></div>
+                <button class="mb-customize" onclick="showToastIos('Opens message editor')">Customize →</button>
+              </div></div>
+              <div class="mb-section"><div class="mb-module">
+                <div class="mb-module__label">Pair Symbol</div>
+                <div class="mb-module__desc">Choose the symbol shown next to your partner's name.</div>
+                <div class="mb-module__current">Current: <span class="mb-chip">★</span></div>
+                <button class="mb-customize" onclick="showToastIos('Opens symbol picker')">Change →</button>
+              </div></div>
+              <div class="mb-section"><div class="mb-module">
+                <div class="mb-module__label">Home Screen Widget</div>
+                <div class="mb-module__desc">Add a quick reassurance glance to your home screen.</div>
+                <div class="mb-module__current"><span class="bcg-badge bcg-badge--success">Active</span></div>
+                <button class="mb-customize" onclick="showToastIos('Opens widget settings')">Configure →</button>
+              </div></div>
+              <div class="mb-section"><div class="mb-module">
+                <div class="mb-module__label">Quiet Hours</div>
+                <div class="mb-module__desc">Pause notifications during set hours so Beaconnect stays calm at night.</div>
+                <div class="mb-module__current"><span class="bcg-badge bcg-badge--warn">10:00 PM – 7:00 AM</span></div>
+                <button class="mb-customize" onclick="showToastIos('Opens quiet hours editor')">Edit →</button>
+              </div></div>
+              <div class="mb-section"><div class="mb-module">
+                <div class="mb-module__label">Appearance</div>
+                <div class="mb-module__desc">Choose how Beaconnect looks on your screen.</div>
+                <div class="mb-module__current">Current: <span class="mb-chip">System default</span></div>
+                <button class="mb-customize" onclick="showToastIos('Opens appearance settings')">Change →</button>
+              </div></div>
+              <div class="mb-section" style="margin-bottom:32px;"><div class="mb-module">
+                <div class="mb-module__label">Accessibility</div>
+                <div class="mb-module__desc">Adjust text size, motion, and screen reader settings.</div>
+                <button class="mb-customize" onclick="showToastIos('Opens accessibility settings')">Open →</button>
+              </div></div>
+            </div>
+            <div class="ios-tab-bar">
+              <button class="ios-tab-item" onclick="showSectionIos('home')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 12 L12 3 L21 12 V20 C21 20.5 20.5 21 20 21 H4 C3.5 21 3 20.5 3 20 V12 Z"/><path d="M9 21 V14 H15 V21" fill="currentColor"/></svg>
+                Home
+              </button>
+              <button class="ios-tab-item" onclick="showSectionIos('updates')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2 C6.5 2 2 6.5 2 12 C2 17.5 6.5 22 12 22"/><path d="M12 22 C17.5 22 22 17.5 22 12 C22 6.5 17.5 2 12 2"/><path d="M22 12 L17 12 M22 12 L19 9"/><path d="M12 8 L12 12 L15 15"/></svg>
+                Updates
+              </button>
+              <button class="ios-tab-item is-active" onclick="showSectionIos('settings')">
+                <svg class="ios-tab-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3"/><path d="M12 2 V4.5 M12 19.5 V22 M4.22 4.22 L6.34 6.34 M17.66 17.66 L19.78 19.78 M2 12 H4.5 M19.5 12 H22 M4.22 19.78 L6.34 17.66 M17.66 6.34 L19.78 4.22" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>
+                Settings
+              </button>
+            </div>
+          </div><!-- /my-beacon -->
+
+          <!-- Sheet -->
+          <div class="sheet-overlay" id="ios-sheet-overlay" onclick="closeSheetIos()"></div>
+          <div class="sheet" id="ios-sheet">
+            <div class="sheet__handle"></div>
+            <div class="sheet__title" id="ios-sheet-title"></div>
+            <div class="sheet__body" id="ios-sheet-body"></div>
+            <div class="sheet__detail" id="ios-sheet-detail"></div>
+            <div class="sheet__actions" id="ios-sheet-actions"></div>
+          </div>
+
+        </div><!-- /inner-content -->
+      </div><!-- /ios-screen -->
+      <div class="ios-home-indicator"></div>
+    </div><!-- /ios-frame -->
+  </div><!-- /device-col -->
+</div><!-- /device-wrap -->
+
+
+<!-- ── iOS Onboarding ── -->
+<div id="ios-onboarding-wrap" style="display:none; padding:40px 24px; background:#e8e4df; min-height:100vh;">
+  <div class="device-col" style="margin-bottom:16px;">
+    <span class="device-label">6-screen Onboarding — iOS</span>
+  </div>
+  <div class="ios-frame" id="ios-ob-frame">
+    <div class="ios-dynamic-island"></div>
+    <div class="ios-screen">
+      <div class="ios-status-bar">
+        <span class="ios-status-bar__time">9:41</span>
+        <div class="ios-status-bar__icons">
+          <svg viewBox="0 0 16 16" fill="currentColor" width="16" height="16"><rect x="1" y="9" width="2.5" height="5" rx="0.5" fill-opacity="0.9"/><rect x="5" y="6.5" width="2.5" height="7.5" rx="0.5" fill-opacity="0.9"/><rect x="9" y="4" width="2.5" height="10" rx="0.5" fill-opacity="0.9"/><rect x="13" y="1.5" width="2.5" height="12.5" rx="0.5" fill-opacity="0.9"/></svg>
+          <svg viewBox="0 0 24 14" width="22" height="13" fill="none"><rect x="0.5" y="1.5" width="19" height="11" rx="3" stroke="currentColor" stroke-width="1.2" fill-opacity="0.9"/><rect x="20" y="4.5" width="3" height="5" rx="1" fill="currentColor" fill-opacity="0.9"/><rect x="2.5" y="3.5" width="13" height="7" rx="1.5" fill="currentColor" fill-opacity="0.9"/></svg>
+        </div>
+      </div>
+
+      <div style="position:absolute;inset:0;background:var(--bcg-surface);display:flex;flex-direction:column;">
+        <div class="inner-scroll" id="ios-ob-scroll" style="flex:1;overflow-y:auto;padding-top:54px;">
+
+          <!-- OB 1 -->
+          <div class="ob-screen is-active" id="ios-ob-1">
+            <div class="ob-top">
+              <div class="ob-eyebrow">Beaconnect</div>
+              <div class="ob-headline">Built for reassurance,<br>not surveillance.</div>
+              <div class="ob-body">Beaconnect helps two people quietly stay connected through mutual sharing and simple check-ins.</div>
+              <div class="ob-note">No tracking. No feeds. Just reassurance that the people you care about are okay.</div>
+            </div>
+            <div class="ob-actions">
+              <div class="ob-dots">
+                <div class="ob-dot is-active" id="ios-ob-dot-1"></div>
+                <div class="ob-dot" id="ios-ob-dot-2"></div>
+                <div class="ob-dot" id="ios-ob-dot-3"></div>
+                <div class="ob-dot" id="ios-ob-dot-4"></div>
+                <div class="ob-dot" id="ios-ob-dot-5"></div>
+                <div class="ob-dot" id="ios-ob-dot-6"></div>
+              </div>
+              <button class="bcg-btn bcg-btn--primary" onclick="obNextIos()">Get Started</button>
+            </div>
+          </div>
+
+          <!-- OB 2 -->
+          <div class="ob-screen" id="ios-ob-2">
+            <div class="ob-top">
+              <div class="ob-eyebrow">Your account</div>
+              <div class="ob-headline">What should<br>Sarah call you?</div>
+              <div class="ob-body">Choose a name your partner will see.</div>
+              <div style="margin-top:8px;">
+                <input type="text" placeholder="Your name" value="Alex" style="width:100%;padding:14px 16px;border:1.5px solid var(--bcg-outline);border-radius:14px;font-family:var(--bcg-font-body);font-size:15px;color:var(--bcg-fg);background:var(--bcg-surface);outline:none;" />
+              </div>
+            </div>
+            <div class="ob-actions">
+              <div class="ob-dots">
+                <div class="ob-dot" id="ios-ob-dot-1b"></div>
+                <div class="ob-dot is-active" id="ios-ob-dot-2b"></div>
+                <div class="ob-dot" id="ios-ob-dot-3b"></div>
+                <div class="ob-dot" id="ios-ob-dot-4b"></div>
+                <div class="ob-dot" id="ios-ob-dot-5b"></div>
+                <div class="ob-dot" id="ios-ob-dot-6b"></div>
+              </div>
+              <button class="bcg-btn bcg-btn--primary" onclick="obNextIos()">Continue</button>
+            </div>
+          </div>
+
+          <!-- OB 3 -->
+          <div class="ob-screen" id="ios-ob-3">
+            <div class="ob-top">
+              <div class="ob-eyebrow">Pairing</div>
+              <div class="ob-headline">Beaconnect only works when both people agree.</div>
+              <div class="ob-body">Connections are always mutual and can be ended at any time by either person.</div>
+              <div class="ob-note ob-note--warn" style="margin-top:auto;">Sarah will need to install Beaconnect and enter the same code to connect with you.</div>
+            </div>
+            <div class="ob-actions">
+              <div class="ob-dots">
+                <div class="ob-dot" id="ios-ob-dot-1c"></div>
+                <div class="ob-dot" id="ios-ob-dot-2c"></div>
+                <div class="ob-dot is-active" id="ios-ob-dot-3c"></div>
+                <div class="ob-dot" id="ios-ob-dot-4c"></div>
+                <div class="ob-dot" id="ios-ob-dot-5c"></div>
+                <div class="ob-dot" id="ios-ob-dot-6c"></div>
+              </div>
+              <button class="bcg-btn bcg-btn--primary" onclick="obNextIos()">Generate Code</button>
+              <button class="bcg-btn bcg-btn--ghost" onclick="obNextIos()" style="width:100%;">Skip for now</button>
+            </div>
+          </div>
+
+          <!-- OB 4 -->
+          <div class="ob-screen" id="ios-ob-4">
+            <div class="ob-top">
+              <div class="ob-eyebrow">Permissions</div>
+              <div class="ob-headline">Location access</div>
+              <div class="ob-body">Beaconnect uses your location to share with Sarah — only when you choose to, and only visible to her.</div>
+              <div class="perm-card" style="margin-top:8px;">
+                <div class="perm-card__q">Why does Beaconnect need this?</div>
+                <div class="perm-card__a">So Sarah can see where you are when you choose to share — not all the time, only during live sharing sessions.</div>
+                <div class="perm-badge perm-badge--ok">
+                  <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1 C3.2 1 1 3.2 1 6 C1 8.8 3.2 11 6 11 C8.8 11 11 8.8 11 6 C11 3.2 8.8 1 6 1Z"/><path d="M4 6 L5.5 7.5 L8 4.5" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                  Enabled
+                </div>
+                <button class="bcg-btn bcg-btn--secondary" style="width:100%;">Open Settings</button>
+              </div>
+            </div>
+            <div class="ob-actions">
+              <div class="ob-dots">
+                <div class="ob-dot" id="ios-ob-dot-1d"></div>
+                <div class="ob-dot" id="ios-ob-dot-2d"></div>
+                <div class="ob-dot" id="ios-ob-dot-3d"></div>
+                <div class="ob-dot is-active" id="ios-ob-dot-4d"></div>
+                <div class="ob-dot" id="ios-ob-dot-5d"></div>
+                <div class="ob-dot" id="ios-ob-dot-6d"></div>
+              </div>
+              <button class="bcg-btn bcg-btn--primary" onclick="obNextIos()">Continue</button>
+            </div>
+          </div>
+
+          <!-- OB 5 -->
+          <div class="ob-screen" id="ios-ob-5">
+            <div class="ob-top">
+              <div class="ob-eyebrow">Connected</div>
+              <div class="ob-headline">You're connected with Sarah.</div>
+              <div class="ob-body">Try your first check-in. Sarah will see it right away.</div>
+              <div class="ob-note" style="margin-top:auto;display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;background:var(--bcg-primary);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="var(--bcg-primary-fg)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8 L6.5 11.5 L13 4.5"/></svg>
+                </div>
+                <span>Sarah is ready to receive your check-in.</span>
+              </div>
+            </div>
+            <div class="ob-actions">
+              <div class="ob-dots">
+                <div class="ob-dot" id="ios-ob-dot-1e"></div>
+                <div class="ob-dot" id="ios-ob-dot-2e"></div>
+                <div class="ob-dot" id="ios-ob-dot-3e"></div>
+                <div class="ob-dot" id="ios-ob-dot-4e"></div>
+                <div class="ob-dot is-active" id="ios-ob-dot-5e"></div>
+                <div class="ob-dot" id="ios-ob-dot-6e"></div>
+              </div>
+              <button class="bcg-btn bcg-btn--primary" onclick="obNextIos()">I'm Okay</button>
+            </div>
+          </div>
+
+          <!-- OB 6 -->
+          <div class="ob-screen" id="ios-ob-6">
+            <div class="ob-top" style="align-items:center;text-align:center;padding-top:60px;">
+              <div class="ob-icon-center ob-icon-center--success">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12 L10 17 L19 7"/></svg>
+              </div>
+              <div class="ob-headline" style="text-align:center;">Sarah now knows you're around.</div>
+              <div class="ob-body" style="text-align:center;">You're ready to quietly stay connected. Beaconnect stays out of your way — it only speaks up when something meaningful happens.</div>
+            </div>
+            <div class="ob-actions">
+              <button class="bcg-btn bcg-btn--primary" onclick="showOnboardingIos(false)">Open Home</button>
+            </div>
+          </div>
+
+        </div><!-- /ob-scroll -->
+      </div>
+    </div>
+    <div class="ios-home-indicator"></div>
+  </div>
+</div>
+
+
+<!-- ── iOS Widget ── -->
+<div id="ios-widget-wrap" style="display:none; padding:40px 24px; background:#e8e4df; min-height:100vh;">
+  <div class="widget-wrap">
+    <span class="device-label">4×2 Widget — iOS preview</span>
+    <div class="beaconnect-widget" data-od-id="widget-ios">
+      <div class="beaconnect-widget__partner">Sarah <span style="color:var(--bcg-caution);">★</span></div>
+      <div class="beaconnect-widget__status">Everything looks normal.</div>
+      <div class="beaconnect-widget__fresh">Updated 2 min ago at Home.</div>
+      <div class="beaconnect-widget__action">
+        <button class="bcg-btn bcg-btn--primary" onclick="widgetPress(this)">I'm Okay</button>
+      </div>
+    </div>
+    <div style="margin-top:8px;">
+      <span class="device-label" style="font-size:10px;">On iOS home screen</span>
+      <div class="widget-ios-preview" style="margin-top:6px;">
+        <div class="beaconnect-widget">
+          <div class="beaconnect-widget__partner">Sarah ★</div>
+          <div class="beaconnect-widget__status">Everything looks normal.</div>
+          <div class="beaconnect-widget__fresh">2 min ago</div>
+          <div class="beaconnect-widget__action">
+            <button class="bcg-btn bcg-btn--primary" onclick="widgetPress(this)">I'm Okay</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  // ── Toast ──────────────────────────────────────────────────
+  let toastTimerIos;
+  function showToastIos(msg) {
+    const el = document.getElementById('ios-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('is-visible');
+    clearTimeout(toastTimerIos);
+    toastTimerIos = setTimeout(() => el.classList.remove('is-visible'), 2800);
+  }
+
+  // ── Check-in ───────────────────────────────────────────────
+  function handleCheckInIos() {
+    const btn = document.getElementById('ios-okay-btn');
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+    setTimeout(() => {
+      btn.textContent = "I'm Okay";
+      btn.disabled = false;
+      showToastIos("Sarah now knows you're around.");
+    }, 900);
+  }
+
+  // ── Screen switcher ───────────────────────────────────────
+  const iosScreens = ['home','updates','settings','trust-center','my-beacon'];
+
+  function showSectionIos(name) {
+    const sections = {
+      home:      { app: true,  onboarding: false, widget: false },
+      updates:   { app: true,  onboarding: false, widget: false },
+      settings:  { app: true,  onboarding: false, widget: false },
+      'trust-center': { app: true,  onboarding: false, widget: false },
+      'my-beacon':    { app: true,  onboarding: false, widget: false },
+      onboarding: { app: false, onboarding: true,  widget: false },
+      widget:     { app: false, onboarding: false, widget: true },
+    };
+
+    const s = sections[name] || sections.home;
+    document.getElementById('device-ios-app').style.display = s.app ? 'flex' : 'none';
+    document.getElementById('ios-onboarding-wrap').style.display = s.onboarding ? 'block' : 'none';
+    document.getElementById('ios-widget-wrap').style.display = s.widget ? 'flex' : 'none';
+    document.getElementById('demo-nav-ios').style.display = 'flex';
+
+    if (s.app) {
+      iosScreens.forEach(sc => {
+        const el = document.getElementById('ios-' + sc);
+        if (el) el.classList.remove('is-active');
+      });
+
+      if (name === 'updates') {
+        document.getElementById('ios-updates').classList.add('is-active');
+      } else if (name === 'settings') {
+        document.getElementById('ios-settings').classList.add('is-active');
+      } else if (name === 'trust-center') {
+        document.getElementById('ios-trust-center').classList.add('is-active');
+      } else if (name === 'my-beacon') {
+        document.getElementById('ios-my-beacon').classList.add('is-active');
+      } else {
+        document.getElementById('ios-home').classList.add('is-active');
+      }
+    }
+
+    // Update nav
+    document.querySelectorAll('#demo-nav-ios .demo-nav__btn').forEach(b => b.classList.remove('is-active'));
+    const labels = { home:'Home', updates:'Updates', settings:'Settings', 'trust-center':'Trust Center', 'my-beacon':'My Beacon', onboarding:'Onboarding', widget:'Widget' };
+    const btn = [...document.querySelectorAll('#demo-nav-ios .demo-nav__btn')].find(b => b.textContent === labels[name]);
+    if (btn) btn.classList.add('is-active');
+  }
+
+  // ── Sheet ─────────────────────────────────────────────────
+  const sheetData = {
+    'checkin-detail': { title: 'Sarah checked in', body: "Sarah let you know she's around.", detail: '<strong>Time:</strong> Today at 8:23 AM<br><strong>Where:</strong> Home', actions: '<button class="bcg-btn bcg-btn--secondary" onclick="closeSheetIos()">Close</button><button class="bcg-btn bcg-btn--ghost" onclick="closeSheetIos()">Open in Maps</button>' },
+    'arrival-detail': { title: 'Arrived at Home', body: 'Sarah arrived home after work.', detail: '<strong>Time:</strong> Today at 5:12 PM<br><strong>Where:</strong> Home', actions: '<button class="bcg-btn bcg-btn--secondary" onclick="closeSheetIos()">Close</button><button class="bcg-btn bcg-btn--ghost" onclick="closeSheetIos()">Open in Maps</button>' },
+    'live-ended-detail': { title: 'Live sharing ended', body: "Sarah's live sharing ended after 28 minutes.", detail: '<strong>Duration:</strong> 28 minutes<br><strong>Ended:</strong> Today at 3:45 PM', actions: '<button class="bcg-btn bcg-btn--secondary" onclick="closeSheetIos()">Close</button>' },
+    'reaction-detail': { title: 'Sarah reacted', body: '"Glad you\'re around" — from earlier check-in.', detail: '<strong>Reacted to:</strong> Your check-in at 7:45 PM<br><strong>When:</strong> Yesterday at 9:02 PM', actions: '<button class="bcg-btn bcg-btn--secondary" onclick="closeSheetIos()">Close</button>' },
+  };
+
+  function openSheetIos(key) {
+    const d = sheetData[key];
+    if (!d) return;
+    document.getElementById('ios-sheet-title').textContent = d.title;
+    document.getElementById('ios-sheet-body').textContent = d.body;
+    document.getElementById('ios-sheet-detail').innerHTML = d.detail;
+    document.getElementById('ios-sheet-actions').innerHTML = d.actions;
+    document.getElementById('ios-sheet-overlay').classList.add('is-open');
+    document.getElementById('ios-sheet').classList.add('is-open');
+  }
+
+  function closeSheetIos() {
+    document.getElementById('ios-sheet-overlay').classList.remove('is-open');
+    document.getElementById('ios-sheet').classList.remove('is-open');
+  }
+
+  // ── Onboarding ─────────────────────────────────────────────
+  let iosObStep = 1;
+  const iosObTotal = 6;
+
+  function obNextIos() {
+    if (iosObStep >= iosObTotal) { showOnboardingIos(false); return; }
+    document.getElementById('ios-ob-' + iosObStep).classList.remove('is-active');
+    iosObStep++;
+    document.getElementById('ios-ob-' + iosObStep).classList.add('is-active');
+  }
+
+  function showOnboardingIos(show) {
+    document.getElementById('ios-onboarding-wrap').style.display = show ? 'block' : 'none';
+    document.getElementById('device-ios-app').style.display = show ? 'none' : 'flex';
+    document.getElementById('ios-widget-wrap').style.display = 'none';
+    document.getElementById('demo-nav-ios').style.display = 'flex';
+    iosObStep = 1;
+  }
+
+  // ── Widget ─────────────────────────────────────────────────
+  function widgetPress(btn) {
+    btn.style.transform = 'scale(0.95)';
+    btn.style.opacity = '0.8';
+    setTimeout(() => {
+      btn.style.transform = '';
+      btn.style.opacity = '';
+      btn.textContent = '✓ Sent';
+      setTimeout(() => { btn.textContent = "I'm Okay"; }, 1800);
+    }, 120);
+  }
+
+  // Init
+  showSectionIos('home');
+</script>
+</body>
+</html>

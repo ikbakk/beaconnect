@@ -27,10 +27,12 @@ class LocalPlaceSnapshotRepository implements PlaceSnapshotRepository {
 
   @override
   Future<PlaceSnapshot> captureSnapshot() async {
-    final label = await _capturePlaceLabel();
+    final captured = await _capturePlace();
     final snapshot = PlaceSnapshot(
-      placeLabel: label,
+      placeLabel: captured.label,
       capturedAt: _now(),
+      latitude: captured.latitude,
+      longitude: captured.longitude,
     );
     await _preferences.setString(_snapshotKey, jsonEncode(snapshot.toJson()));
     return snapshot;
@@ -46,9 +48,9 @@ class LocalPlaceSnapshotRepository implements PlaceSnapshotRepository {
     return PlaceSnapshot.fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
-  Future<String> _capturePlaceLabel() async {
+  Future<_CapturedPlace> _capturePlace() async {
     if (_capturePlaceLabelOverride case final override?) {
-      return _normalizePlaceLabel(await override());
+      return _CapturedPlace(label: _normalizePlaceLabel(await override()));
     }
 
     if (!_supportsDeviceLocation) {
@@ -84,7 +86,11 @@ class LocalPlaceSnapshotRepository implements PlaceSnapshotRepository {
         position.latitude,
         position.longitude,
       );
-      return _normalizePlaceLabel(_labelFromPlacemarks(placemarks));
+      return _CapturedPlace(
+        label: _normalizePlaceLabel(_labelFromPlacemarks(placemarks)),
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
     } on TimeoutException {
       throw const PlaceSnapshotFailure(
         'Current place could not be updated just yet.',
@@ -101,6 +107,7 @@ class LocalPlaceSnapshotRepository implements PlaceSnapshotRepository {
       );
     }
   }
+
 
   bool get _supportsDeviceLocation => Platform.isAndroid || Platform.isIOS;
 
@@ -136,4 +143,16 @@ class LocalPlaceSnapshotRepository implements PlaceSnapshotRepository {
 
     return null;
   }
+}
+
+class _CapturedPlace {
+  const _CapturedPlace({
+    required this.label,
+    this.latitude,
+    this.longitude,
+  });
+
+  final String label;
+  final double? latitude;
+  final double? longitude;
 }

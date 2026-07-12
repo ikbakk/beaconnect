@@ -75,8 +75,10 @@ class LocalPlaceSnapshotRepository implements PlaceSnapshotRepository {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 12),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+          timeLimit: Duration(seconds: 12),
+        ),
       );
       final placemarks = await placemarkFromCoordinates(
         position.latitude,

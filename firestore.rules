@@ -78,6 +78,29 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /pairs/{pairId}/checkInRequests/{requestId} {
+      allow read: if isPairMember(pairId);
+      allow create: if isPairMember(pairId)
+        && request.resource.data.actorUserId == request.auth.uid
+        && request.resource.data.actorDisplayName is string
+        && request.resource.data.targetUserId is string
+        && request.resource.data.status == 'pending'
+        && request.resource.data.response == null;
+      allow update: if isPairMember(pairId)
+        && resource.data.targetUserId == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.actorUserId == resource.data.actorUserId
+        && request.resource.data.actorDisplayName == resource.data.actorDisplayName
+        && request.resource.data.targetUserId == resource.data.targetUserId
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.status == 'responded'
+        && (
+          request.resource.data.response == 'im_okay'
+          || request.resource.data.response == 'later'
+        );
+      allow delete: if false;
+    }
+
     match /inviteCodes/{code} {
       allow read: if isSignedIn();
       allow create: if isSignedIn()

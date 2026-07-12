@@ -10,15 +10,31 @@ void main() {
   test('sends one request then enters cooldown', () async {
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
+    final repository = LocalRequestCheckInRepository(preferences);
     final useCase = SendRequestCheckInUseCase(
-      LocalRequestCheckInRepository(preferences),
+      repository,
       AddUpdateUseCase(LocalUpdatesRepository(preferences)),
     );
 
-    final first = await useCase(partnerName: 'Sarah');
-    final second = await useCase(partnerName: 'Sarah');
+    final first = await useCase(
+      requesterUserId: 'user-1',
+      requesterName: 'Iqbal',
+      partnerUserId: 'user-2',
+    );
+    final second = await useCase(
+      requesterUserId: 'user-1',
+      requesterName: 'Iqbal',
+      partnerUserId: 'user-2',
+    );
 
     expect(first.wasSent, true);
     expect(second.wasSent, false);
+    expect(
+      await repository.respondToLatestIncomingRequest(
+        responderUserId: 'user-2',
+        response: 'im_okay',
+      ),
+      true,
+    );
   });
 }

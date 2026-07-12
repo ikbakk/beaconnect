@@ -82,7 +82,7 @@
 - [x] Runtime permission checks use device status
 - [x] Permission request path works from onboarding and Trust Center
 - [x] Real current place capture uses device location
-- [ ] Request Check-in uses pair-shared backend state
+- [x] Request Check-in uses pair-shared backend state
 
 ---
 
@@ -127,7 +127,7 @@
 - [ ] History retention cleanup
 - [ ] Golden tests (Partner Card, Home, Widget, Trust Center)
 - [x] Real current place capture test coverage
-- [ ] Pair-shared request check-in test coverage
+- [x] Pair-shared request check-in test coverage
 
 ---
 

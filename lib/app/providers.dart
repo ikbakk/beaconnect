@@ -49,6 +49,7 @@ import '../features/place_snapshot/data/local_place_snapshot_repository.dart';
 import '../features/place_snapshot/domain/place_snapshot.dart';
 import '../features/place_snapshot/domain/place_snapshot_repository.dart';
 import '../features/request_check_in/application/send_request_check_in_use_case.dart';
+import '../features/request_check_in/data/firebase_request_check_in_repository.dart';
 import '../features/request_check_in/data/local_request_check_in_repository.dart';
 import '../features/request_check_in/domain/request_check_in_repository.dart';
 import '../features/updates/application/add_update_use_case.dart';
@@ -123,9 +124,18 @@ final checkInRepositoryProvider = Provider<CheckInRepository>((ref) {
   };
 });
 
-final requestCheckInRepositoryProvider = Provider<RequestCheckInRepository>(
-  (ref) => LocalRequestCheckInRepository(ref.watch(sharedPreferencesProvider)),
-);
+final requestCheckInRepositoryProvider = Provider<RequestCheckInRepository>((ref) {
+  final config = ref.watch(appConfigProvider);
+  final pairId = ref.watch(currentPairProvider)?.id;
+  final currentUserId = ref.watch(currentUserProvider)?.id;
+  return switch (config.dataSource) {
+    AppDataSource.local => LocalRequestCheckInRepository(ref.watch(sharedPreferencesProvider)),
+    AppDataSource.firebase => FirebaseRequestCheckInRepository(
+      pairId: pairId,
+      currentUserId: currentUserId,
+    ),
+  };
+});
 
 final placeSnapshotRepositoryProvider = Provider<PlaceSnapshotRepository>(
   (ref) => LocalPlaceSnapshotRepository(ref.watch(sharedPreferencesProvider)),
@@ -192,6 +202,7 @@ final sendCheckInUseCaseProvider = Provider<SendCheckInUseCase>(
     ref.watch(checkInRepositoryProvider),
     ref.watch(addUpdateUseCaseProvider),
     ref.watch(myBeaconRepositoryProvider),
+    ref.watch(requestCheckInRepositoryProvider),
   ),
 );
 final sendRequestCheckInUseCaseProvider = Provider<SendRequestCheckInUseCase>(

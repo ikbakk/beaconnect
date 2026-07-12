@@ -31,19 +31,50 @@ class RequestCheckInController extends StateNotifier<RequestCheckInState> {
     }
 
     final session = _ref.read(appSessionProvider);
-    final partnerName = session.currentPair?.partnerDisplayName ?? 'Your partner';
+    final currentUser = session.currentUser;
+    final currentPair = session.currentPair;
+    if (currentUser == null || currentPair == null || currentPair.memberIds.length < 2) {
+      state = const RequestCheckInState(
+        isSending: false,
+        lastMessage: 'Check-ins work best after you pair first.',
+      );
+      return;
+    }
+
+    final partnerUserId = currentPair.memberIds.firstWhere(
+      (memberId) => memberId != currentUser.id,
+      orElse: () => '',
+    );
+    if (partnerUserId.isEmpty) {
+      state = const RequestCheckInState(
+        isSending: false,
+        lastMessage: 'Check-ins work best after you pair first.',
+      );
+      return;
+    }
 
     state = const RequestCheckInState(isSending: true, lastMessage: null);
-    final result = await _ref
-        .read(sendRequestCheckInUseCaseProvider)
-        .call(partnerName: partnerName);
-    _ref.invalidate(updatesProvider);
-    _ref.invalidate(homeSnapshotProvider);
+    try {
+      final result = await _ref
+          .read(sendRequestCheckInUseCaseProvider)
+          .call(
+            requesterUserId: currentUser.id,
+            requesterName: currentUser.displayName,
+            partnerUserId: partnerUserId,
+          );
+      _ref.invalidate(updatesProvider);
+      _ref.invalidate(homeSnapshotProvider);
 
-    state = RequestCheckInState(
-      isSending: false,
-      lastMessage: result.message,
-    );
+      state = RequestCheckInState(
+        isSending: false,
+        lastMessage: result.message,
+      );
+    } catch (_) {
+      state = const RequestCheckInState(
+        isSending: false,
+        lastMessage: 'Something did not go as expected. We will try again automatically.',
+      );
+    }
   }
 
   void clearMessage() {

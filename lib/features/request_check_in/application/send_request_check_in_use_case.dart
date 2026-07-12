@@ -14,7 +14,11 @@ class SendRequestCheckInUseCase {
 
   static const _cooldown = Duration(minutes: 5);
 
-  Future<RequestCheckInResult> call({required String partnerName}) async {
+  Future<RequestCheckInResult> call({
+    required String requesterUserId,
+    required String requesterName,
+    required String partnerUserId,
+  }) async {
     final lastSentAt = await _repository.getLastRequestAt();
     final now = DateTime.now();
 
@@ -25,21 +29,18 @@ class SendRequestCheckInUseCase {
       );
     }
 
-    await _repository.saveLastRequestAt(now);
-    await _addUpdateUseCase(
-      UpdateStory(
-        timeGroup: 'Just now',
-        title: 'Requested a check-in',
-        story: 'You asked for a quick check-in from your partner.',
-        place: 'Waiting quietly',
-      ),
+    await _repository.createRequest(
+      createdAt: now,
+      requesterUserId: requesterUserId,
+      requesterName: requesterName,
+      partnerUserId: partnerUserId,
     );
     await _addUpdateUseCase(
       UpdateStory(
         timeGroup: 'Just now',
         title: 'Request check-in',
-        story: '$partnerName requested a check-in.',
-        place: '[I\'m Okay] [Later]',
+        story: '$requesterName requested a check-in.',
+        place: 'Waiting quietly',
       ),
     );
 

@@ -53,6 +53,7 @@ class CheckInController extends StateNotifier<CheckInState> {
       partnerName: currentPair.partnerDisplayName,
     );
     final result = await _ref.read(sendCheckInUseCaseProvider).call(
+      senderUserId: currentUser.id,
       senderName: currentUser.displayName,
       partnerName: currentPair.partnerDisplayName,
     );

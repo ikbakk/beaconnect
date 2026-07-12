@@ -10,6 +10,7 @@ pairs/{pairId}
 pairs/{pairId}/members/{userId}
 pairs/{pairId}/events/{eventId}
 pairs/{pairId}/liveSessions/{sessionId}
+pairs/{pairId}/checkInRequests/{requestId}
 inviteCodes/{code}
 devices/{deviceId}
 ```
@@ -58,6 +59,20 @@ devices/{deviceId}
   "expiresAt": "timestamp",
   "pausedAt": null,
   "endedAt": null
+}
+```
+
+## checkInRequests/{requestId}
+
+```json
+{
+  "actorUserId": "userA",
+  "actorDisplayName": "Iqbal",
+  "targetUserId": "userB",
+  "status": "pending",
+  "response": null,
+  "createdAt": "serverTimestamp",
+  "respondedAt": null
 }
 ```
 

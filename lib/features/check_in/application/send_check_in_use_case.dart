@@ -1,4 +1,5 @@
 import '../../my_beacon/domain/my_beacon_repository.dart';
+import '../../request_check_in/domain/request_check_in_repository.dart';
 import '../../updates/application/add_update_use_case.dart';
 import '../../updates/domain/update_story.dart';
 import '../domain/check_in_repository.dart';
@@ -9,15 +10,18 @@ class SendCheckInUseCase {
     this._repository,
     this._addUpdateUseCase,
     this._myBeaconRepository,
+    this._requestCheckInRepository,
   );
 
   final CheckInRepository _repository;
   final AddUpdateUseCase _addUpdateUseCase;
   final MyBeaconRepository _myBeaconRepository;
+  final RequestCheckInRepository _requestCheckInRepository;
 
   static const _cooldown = Duration(minutes: 3);
 
   Future<CheckInResult> call({
+    required String senderUserId,
     required String senderName,
     required String partnerName,
   }) async {
@@ -43,6 +47,14 @@ class SendCheckInUseCase {
         place: 'Current place',
       ),
     );
+    try {
+      await _requestCheckInRepository.respondToLatestIncomingRequest(
+        responderUserId: senderUserId,
+        response: 'im_okay',
+      );
+    } catch (_) {
+      // Check-ins stay calm even when a pending request cannot be updated right away.
+    }
     await _repository.saveLastCheckInAt(now);
 
     return CheckInResult(

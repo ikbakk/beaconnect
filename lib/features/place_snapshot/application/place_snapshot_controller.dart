@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app/providers.dart';
 import '../domain/place_snapshot.dart';
+import '../domain/place_snapshot_failure.dart';
 
 final placeSnapshotControllerProvider =
     StateNotifierProvider<PlaceSnapshotController, PlaceSnapshotState>(
@@ -45,14 +46,28 @@ class PlaceSnapshotController extends StateNotifier<PlaceSnapshotState> {
       snapshot: state.snapshot,
     );
 
-    final snapshot = await _ref.read(capturePlaceSnapshotUseCaseProvider).call();
-    _ref.invalidate(homeSnapshotProvider);
+    try {
+      final snapshot = await _ref.read(capturePlaceSnapshotUseCaseProvider).call();
+      _ref.invalidate(homeSnapshotProvider);
 
-    state = PlaceSnapshotState(
-      isCapturing: false,
-      lastMessage: 'Showing your most recent update from ${snapshot.placeLabel}.',
-      snapshot: snapshot,
-    );
+      state = PlaceSnapshotState(
+        isCapturing: false,
+        lastMessage: 'Showing your most recent update from ${snapshot.placeLabel}.',
+        snapshot: snapshot,
+      );
+    } on PlaceSnapshotFailure catch (error) {
+      state = PlaceSnapshotState(
+        isCapturing: false,
+        lastMessage: error.message,
+        snapshot: state.snapshot,
+      );
+    } catch (_) {
+      state = PlaceSnapshotState(
+        isCapturing: false,
+        lastMessage: 'Current place could not be updated just yet.',
+        snapshot: state.snapshot,
+      );
+    }
   }
 
   void clearMessage() {

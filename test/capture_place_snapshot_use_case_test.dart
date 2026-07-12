@@ -11,15 +11,18 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();
     final useCase = CapturePlaceSnapshotUseCase(
-      LocalPlaceSnapshotRepository(preferences),
+      LocalPlaceSnapshotRepository(
+        preferences,
+        capturePlaceLabel: () async => 'Beacon Park',
+      ),
       AddUpdateUseCase(LocalUpdatesRepository(preferences)),
     );
 
     final snapshot = await useCase();
     final updates = await LocalUpdatesRepository(preferences).getUpdates();
 
-    expect(snapshot.placeLabel, 'Home');
+    expect(snapshot.placeLabel, 'Beacon Park');
     expect(updates.first.title, 'Updated current place');
-    expect(updates.first.place, 'Home');
+    expect(updates.first.place, 'Beacon Park');
   });
 }

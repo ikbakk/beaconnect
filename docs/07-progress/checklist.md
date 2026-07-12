@@ -78,6 +78,12 @@
 - [ ] Remote Config
 - [ ] App Distribution
 
+### Functional Hardening
+- [x] Runtime permission checks use device status
+- [x] Permission request path works from onboarding and Trust Center
+- [ ] Real current place capture uses device location
+- [ ] Request Check-in uses pair-shared backend state
+
 ---
 
 ## Documentation
@@ -120,6 +126,8 @@
 - [ ] Live sharing pause timer continues
 - [ ] History retention cleanup
 - [ ] Golden tests (Partner Card, Home, Widget, Trust Center)
+- [ ] Real current place capture test coverage
+- [ ] Pair-shared request check-in test coverage
 
 ---
 

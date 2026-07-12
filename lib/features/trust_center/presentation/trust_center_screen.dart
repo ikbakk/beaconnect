@@ -69,7 +69,18 @@ class TrustCenterScreen extends ConsumerWidget {
               loading: () => 'Checking gently…',
             ),
             actionLabel: 'Review status',
-            onAction: () {},
+            onAction: () async {
+              final status = await ref.read(enablePermissionEducationUseCaseProvider).call();
+              ref.invalidate(permissionStatusProvider);
+              if (context.mounted) {
+                final message = status.isReadyForSharing
+                    ? 'Sharing is ready.'
+                    : 'Sharing works best when permission is enabled.';
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(message)),
+                );
+              }
+            },
           ),
           const SizedBox(height: 12),
           _SectionCard(

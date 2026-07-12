@@ -20,4 +20,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(path: '/trust-center', builder: (context, state) => const TrustCenterScreen()),
     GoRoute(path: '/my-beacon', builder: (context, state) => const MyBeaconScreen()),
   ],
+  redirect: (context, state) {
+    if (state.uri.path == '/checkin') {
+      return '/home?action=checkin';
+    }
+    return null;
+  },
 );

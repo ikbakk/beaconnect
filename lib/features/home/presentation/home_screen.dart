@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/providers.dart';
+import '../../check_in/application/check_in_controller.dart';
 import '../../check_in/presentation/check_in_button.dart';
 import '../../place_snapshot/application/place_snapshot_controller.dart';
 import '../../request_check_in/presentation/request_check_in_button.dart';
@@ -10,11 +11,41 @@ import '../domain/home_state_variant.dart';
 import 'widgets/home_update_card.dart';
 import 'widgets/partner_card.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final uri = GoRouter.of(context).routeInformationProvider.value.uri;
+      if (uri.queryParameters['action'] == 'checkin') {
+        _handleWidgetCheckIn();
+      }
+    });
+  }
+
+  void _handleWidgetCheckIn() {
+    ref.read(checkInControllerProvider.notifier).sendCheckIn();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final state = ref.read(checkInControllerProvider);
+      if (state.message != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.message!)),
+        );
+        ref.read(checkInControllerProvider.notifier).reset();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final snapshot = ref.watch(homeSnapshotProvider);
     final placeState = ref.watch(placeSnapshotControllerProvider);
@@ -31,7 +62,7 @@ class HomeScreen extends ConsumerWidget {
                 child: PartnerCard(summary: home.partnerSummary),
               ),
               const SizedBox(height: 24),
-              const CheckInButton(),
+              CheckInButton(onComplete: _handleWidgetCheckIn),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -73,10 +104,7 @@ class HomeScreen extends ConsumerWidget {
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
-                    child: Text(
-                      'No new updates yet.',
-                      style: theme.textTheme.bodyMedium,
-                    ),
+                    child: Text('No new updates yet.', style: theme.textTheme.bodyMedium),
                   ),
                 )
               else
@@ -158,7 +186,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-          error: (error, stackTrace) => Center(
+          error: (_, _) => Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -170,7 +198,6 @@ class HomeScreen extends ConsumerWidget {
                 FilledButton(
                   onPressed: () {
                     ref.invalidate(homeSnapshotProvider);
-                    ref.invalidate(updatesProvider);
                   },
                   child: const Text('Try again'),
                 ),

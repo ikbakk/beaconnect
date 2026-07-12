@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetPlugin
 import org.json.JSONObject
@@ -40,18 +41,31 @@ class BeaconnectWidgetProvider : AppWidgetProvider() {
             views.setTextViewText(R.id.widget_status, status)
             views.setTextViewText(R.id.widget_freshness, freshness)
 
-            val tapIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-            if (tapIntent != null) {
+            // Tap partner name → open app (default Home)
+            val openIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            if (openIntent != null) {
                 views.setOnClickPendingIntent(
                     R.id.widget_partner_name,
                     PendingIntent.getActivity(
                         context,
                         appWidgetId,
-                        tapIntent,
+                        openIntent,
                         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     ),
                 )
             }
+
+            // Tap "I'm Okay" → send check-in via app link
+            val checkInIntent = Intent(Intent.ACTION_VIEW, Uri.parse("beaconnect://checkin"))
+            views.setOnClickPendingIntent(
+                R.id.widget_check_in,
+                PendingIntent.getActivity(
+                    context,
+                    appWidgetId,
+                    checkInIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                ),
+            )
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }

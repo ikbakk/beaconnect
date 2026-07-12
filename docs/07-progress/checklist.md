@@ -146,7 +146,8 @@
 - [ ] No raw error messages
 - [ ] Delayed state is calm
 - [ ] Trust Center explains before action
-- [ ] Widget is 4×2 and non-dashboard
+- [x] Widget is 4×2 and non-dashboard
+- [x] Real "I'm Okay" action from native Android home-screen widget
 - [ ] App recovers after process kill
 - [ ] Widget shows cached state
 - [ ] Background behavior does not drain battery aggressively

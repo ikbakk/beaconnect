@@ -5,7 +5,9 @@ import '../application/check_in_controller.dart';
 import '../domain/check_in_status.dart';
 
 class CheckInButton extends ConsumerWidget {
-  const CheckInButton({super.key});
+  const CheckInButton({super.key, this.onComplete});
+
+  final VoidCallback? onComplete;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,9 +29,7 @@ class CheckInButton extends ConsumerWidget {
             ? null
             : () async {
                 await controller.sendCheckIn();
-                if (!context.mounted) {
-                  return;
-                }
+                if (!context.mounted) return;
                 final nextState = ref.read(checkInControllerProvider);
                 final message = nextState.message;
                 if (message != null) {
@@ -38,6 +38,7 @@ class CheckInButton extends ConsumerWidget {
                   );
                 }
                 controller.reset();
+                onComplete?.call();
               },
         style: FilledButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 20),

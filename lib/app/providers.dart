@@ -28,6 +28,7 @@ import '../features/home/application/get_home_snapshot_use_case.dart';
 import '../features/home/data/local_home_repository.dart';
 import '../features/home/domain/home_repository.dart';
 import '../features/home/domain/home_snapshot.dart';
+import '../features/live_sharing/data/firebase_live_sharing_repository.dart';
 import '../features/live_sharing/data/local_live_sharing_repository.dart';
 import '../features/live_sharing/domain/live_sharing_repository.dart';
 import '../features/my_beacon/application/get_my_beacon_preferences_use_case.dart';
@@ -141,9 +142,18 @@ final placeSnapshotRepositoryProvider = Provider<PlaceSnapshotRepository>(
   (ref) => LocalPlaceSnapshotRepository(ref.watch(sharedPreferencesProvider)),
 );
 
-final liveSharingRepositoryProvider = Provider<LiveSharingRepository>(
-  (ref) => LocalLiveSharingRepository(ref.watch(sharedPreferencesProvider)),
-);
+final liveSharingRepositoryProvider = Provider<LiveSharingRepository>((ref) {
+  final config = ref.watch(appConfigProvider);
+  final pairId = ref.watch(currentPairProvider)?.id;
+  final currentUserId = ref.watch(currentUserProvider)?.id;
+  return switch (config.dataSource) {
+    AppDataSource.local => LocalLiveSharingRepository(ref.watch(sharedPreferencesProvider)),
+    AppDataSource.firebase => FirebaseLiveSharingRepository(
+      pairId: pairId,
+      currentUserId: currentUserId,
+    ),
+  };
+});
 
 final batterySaverRepositoryProvider = Provider<BatterySaverRepository>(
   (ref) => LocalBatterySaverRepository(ref.watch(sharedPreferencesProvider)),

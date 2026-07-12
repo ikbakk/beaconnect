@@ -58,7 +58,8 @@ devices/{deviceId}
   "startedAt": "serverTimestamp",
   "expiresAt": "timestamp",
   "pausedAt": null,
-  "endedAt": null
+  "endedAt": null,
+  "remainingMinutes": 18
 }
 ```
 

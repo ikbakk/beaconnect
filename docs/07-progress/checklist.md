@@ -83,6 +83,7 @@
 - [x] Permission request path works from onboarding and Trust Center
 - [x] Real current place capture uses device location
 - [x] Request Check-in uses pair-shared backend state
+- [x] Live Sharing uses pair-shared backend state
 
 ---
 

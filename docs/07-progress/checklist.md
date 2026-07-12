@@ -94,13 +94,14 @@
 - [x] Roadmap updated (M4/M5 done, M6 in progress)
 - [x] Changelog updated for 0.2.0
 - [x] Project progress checklist created
+- [x] `next-job.md` created with phased plan and stale doc list
 - [ ] Firebase credentials doc updated
 - [ ] Architecture diagrams
 - [ ] Demo video
 - [ ] Screenshots
 - [ ] Case study
 - [ ] SECURITY.md
-- [ ] Issue templates (contribution guide)
+- [ ] Issue templates (contribution guide) — see `next-job.md` for full list
 
 ---
 

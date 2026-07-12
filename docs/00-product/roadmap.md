@@ -10,8 +10,8 @@
 | M3 | Technical Architecture | Frozen |
 | M4 | Engineering Execution | Done |
 | M5 | Vertical Slice | Done |
-| M6 | Internal Alpha | In Progress |
-| M7 | Closed Beta | Planned |
+| M6 | Internal Alpha | Frozen (Done) |
+| M7 | Closed Beta | Next |
 | M8 | Portfolio Release | Planned |
 | M9 | Public Open Source | Planned |
 
@@ -55,22 +55,29 @@ Add:
 - Android home-screen widget ✅
 - accessibility pass (Semantics + reduced motion) ✅
 - Firestore rules hardened ✅
+- mutual approval pairing ✅
+- real check-in from Android widget ✅
+
+**Frozen.** Next: see `docs/07-progress/next-job.md`.
 
 ## M7 Closed Beta
 
 Add:
 
-- live sharing
-- polish
-- error recovery
-- app distribution
+- live sharing ✅ (mostly — pair-shared sync done, notification on start not yet)
+- polish ✅ (recovery, empty states, a11y)
+- app distribution (Firebase App Distribution to be configured)
+- Cloud Messaging (push notifications)
+- Cloud Functions (invite expiry TTL, history retention, shared deletion)
+- release signing (debug + release SHA-1, keystore)
+- offline hardening (queued check-in, stale freshness display)
 - feedback flow
 
 ## M8 Portfolio Release
 
 Prepare:
 
-- README
+- README ✅
 - screenshots
 - case study
 - architecture diagrams

@@ -173,8 +173,8 @@ class OnboardingScreen extends ConsumerWidget {
         return _OnboardingContent(
           eyebrow: 'Connected',
           headline: 'You\'re connected with Sarah.',
-          body: 'Try your first check-in. Sarah will see it right away.',
-          checks: ['Sarah is ready to receive your check-in.'],
+          body:
+              'You\'re all set. Your home page is where you\'ll send check-ins when you want to.',
         );
 
       case OnboardingStep.success:
@@ -193,7 +193,7 @@ class OnboardingScreen extends ConsumerWidget {
       OnboardingStep.account => 'Continue',
       OnboardingStep.pairing => 'Generate Code',
       OnboardingStep.permissions => 'Continue',
-      OnboardingStep.connected => 'I\'m Okay',
+      OnboardingStep.connected => 'Continue',
       OnboardingStep.success => 'Open Home',
     };
   }
@@ -358,7 +358,6 @@ class _OnboardingContent extends StatelessWidget {
     this.body = '',
     this.note,
     this.noteWarning = false,
-    this.checks,
     this.inputLabel,
     this.inputHint,
     this.inputValue,
@@ -387,7 +386,6 @@ class _OnboardingContent extends StatelessWidget {
   final String body;
   final String? note;
   final bool noteWarning;
-  final List<String>? checks;
   final String? inputLabel;
   final String? inputHint;
   final String? inputValue;
@@ -521,41 +519,6 @@ class _OnboardingContent extends StatelessWidget {
                 fontSize: 13,
                 height: 1.55,
                 color: BcgColors.fgMuted,
-              ),
-            ),
-          ),
-        ],
-
-        // Checks
-        if (checks != null && checks!.isNotEmpty) ...[
-          const SizedBox(height: BcgSpacing.s4),
-          ...checks!.map(
-            (check) => Padding(
-              padding: const EdgeInsets.only(bottom: BcgSpacing.s3),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: BcgColors.successBg,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check,
-                      size: 12,
-                      color: BcgColors.success,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      check,
-                      style: TextStyle(fontSize: 14, color: BcgColors.fg),
-                    ),
-                  ),
-                ],
               ),
             ),
           ),

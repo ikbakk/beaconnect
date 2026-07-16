@@ -15,7 +15,6 @@ class BcgInteractiveMapPreview extends StatelessWidget {
     required this.onTap,
     this.latitude,
     this.longitude,
-    this.isUpdating = false,
     this.height = 160,
   });
 
@@ -23,7 +22,6 @@ class BcgInteractiveMapPreview extends StatelessWidget {
   final VoidCallback onTap;
   final double? latitude;
   final double? longitude;
-  final bool isUpdating;
   final double height;
 
   LatLng get _center => latitude != null && longitude != null
@@ -54,21 +52,10 @@ class BcgInteractiveMapPreview extends StatelessWidget {
               ),
             ),
             Positioned(
-              right: BcgSpacing.s3,
-              top: BcgSpacing.s3,
-              child: _MapHint(label: isUpdating ? 'Updating…' : 'Tap map'),
-            ),
-            Positioned(
               left: BcgSpacing.s3,
               bottom: BcgSpacing.s3,
               child: _MapLabel(label: label),
             ),
-            if (latitude == null || longitude == null)
-              const Positioned(
-                left: BcgSpacing.s3,
-                top: BcgSpacing.s3,
-                child: _MapHint(label: 'Update place for live map'),
-              ),
           ],
         ),
       ),

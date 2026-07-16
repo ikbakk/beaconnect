@@ -60,7 +60,8 @@ class OnboardingScreen extends ConsumerWidget {
                   _PrimaryButton(
                     label: _getPrimaryLabel(state.step),
                     isLoading: state.isWorking,
-                    onPressed: () => _handlePrimary(context, ref, state, controller),
+                    onPressed: () =>
+                        _handlePrimary(context, ref, state, controller),
                   ),
 
                   // Secondary button (if needed)
@@ -68,7 +69,8 @@ class OnboardingScreen extends ConsumerWidget {
                     const SizedBox(height: BcgSpacing.s3),
                     _SecondaryButton(
                       label: _getSecondaryLabel(state.step),
-                      onPressed: () => _handleSecondary(context, ref, state, controller),
+                      onPressed: () =>
+                          _handleSecondary(context, ref, state, controller),
                     ),
                   ],
                 ],
@@ -91,8 +93,10 @@ class OnboardingScreen extends ConsumerWidget {
         return _OnboardingContent(
           eyebrow: 'Beaconnect',
           headline: 'Built for reassurance,\nnot surveillance.',
-          body: 'Beaconnect helps two people quietly stay connected through mutual sharing and simple check-ins.',
-          note: 'No tracking. No feeds. Just reassurance that the people you care about are okay.',
+          body:
+              'Beaconnect helps two people quietly stay connected through mutual sharing and simple check-ins.',
+          note:
+              'No tracking. No feeds. Just reassurance that the people you care about are okay.',
           noteWarning: false,
         );
 
@@ -118,7 +122,9 @@ class OnboardingScreen extends ConsumerWidget {
           tertiaryInputLabel: state.isSignUp ? 'Confirm password' : null,
           tertiaryInputHint: 'Repeat your password',
           tertiaryInputValue: state.isSignUp ? state.confirmPassword : null,
-          onTertiaryInputChanged: state.isSignUp ? controller.updateConfirmPassword : null,
+          onTertiaryInputChanged: state.isSignUp
+              ? controller.updateConfirmPassword
+              : null,
           obscureTertiaryInput: true,
           tertiaryActionLabel: state.isSignUp
               ? 'Already have an account? Sign in'
@@ -133,15 +139,18 @@ class OnboardingScreen extends ConsumerWidget {
         return _OnboardingContent(
           eyebrow: 'Pairing',
           headline: 'Beaconnect only works when both people agree.',
-          body: 'Connections are always mutual and can be ended at any time by either person.',
-          note: 'Sarah will need to install Beaconnect and enter the same code to connect with you.',
+          body:
+              'Connections are always mutual and can be ended at any time by either person.',
+          note:
+              'Sarah will need to install Beaconnect and enter the same code to connect with you.',
           noteWarning: true,
           inputLabel: 'Partner code',
           inputHint: 'Enter their code',
           inputValue: state.enteredInviteCode,
           onInputChanged: controller.updateInviteCode,
           textCapitalization: TextCapitalization.characters,
-          detail: 'Your code: ${state.inviteCode}\nExpires in ${state.expiresInMinutes} minutes.',
+          detail:
+              'Your code: ${state.inviteCode}\nExpires in ${state.expiresInMinutes} minutes.',
           authMessage: state.authMessage,
         );
 
@@ -149,10 +158,12 @@ class OnboardingScreen extends ConsumerWidget {
         return _OnboardingContent(
           eyebrow: 'Permissions',
           headline: 'Location access',
-          body: 'Beaconnect uses your location to share with Sarah — only when you choose to, and only visible to her.',
+          body:
+              'Beaconnect uses your location to share with Sarah — only when you choose to, and only visible to her.',
           child: _PermissionCard(
             whyTitle: 'Why does Beaconnect need this?',
-            description: 'So Sarah can see where you are when you choose to share — not all the time, only during live sharing sessions.',
+            description:
+                'So Sarah can see where you are when you choose to share — not all the time, only during live sharing sessions.',
             statusLabel: 'Enabled',
             isEnabled: true,
           ),
@@ -170,10 +181,8 @@ class OnboardingScreen extends ConsumerWidget {
         return _OnboardingContent(
           eyebrow: 'Success',
           headline: 'Sarah now knows you\'re around.',
-          body: 'You\'re ready to quietly stay connected. Beaconnect stays out of your way — it only speaks up when something meaningful happens.',
-          icon: Icons.check_circle,
-          iconColor: BcgColors.success,
-          iconBg: BcgColors.successBg,
+          body:
+              'You\'re ready to quietly stay connected. Beaconnect stays out of your way — it only speaks up when something meaningful happens.',
         );
     }
   }
@@ -190,7 +199,7 @@ class OnboardingScreen extends ConsumerWidget {
   }
 
   bool _showSecondary(OnboardingStep step) {
-    return step == OnboardingStep.pairing;
+    return false;
   }
 
   String _getSecondaryLabel(OnboardingStep step) {
@@ -217,7 +226,9 @@ class OnboardingScreen extends ConsumerWidget {
           return;
         }
         if (state.password.length < 6) {
-          controller.showAuthMessage('Choose a password with at least 6 characters.');
+          controller.showAuthMessage(
+            'Choose a password with at least 6 characters.',
+          );
           return;
         }
         if (state.isSignUp && state.password != state.confirmPassword) {
@@ -227,25 +238,25 @@ class OnboardingScreen extends ConsumerWidget {
         controller.startWork();
         try {
           final user = state.isSignUp
-              ? await ref.read(signUpWithEmailUseCaseProvider).call(
-                    email: state.email,
-                    password: state.password,
-                  )
-              : await ref.read(signInWithEmailUseCaseProvider).call(
-                    email: state.email,
-                    password: state.password,
-                  );
+              ? await ref
+                    .read(signUpWithEmailUseCaseProvider)
+                    .call(email: state.email, password: state.password)
+              : await ref
+                    .read(signInWithEmailUseCaseProvider)
+                    .call(email: state.email, password: state.password);
           ref.read(currentUserProvider.notifier).state = user;
-          final prepared = await ref.read(createInviteCodeUseCaseProvider).call(
-                currentUser: user,
-              );
+          final prepared = await ref
+              .read(createInviteCodeUseCaseProvider)
+              .call(currentUser: user);
           ref.read(currentPairProvider.notifier).state = prepared;
           await controller.signIn(user);
           await controller.preparePairing(prepared);
         } on AuthFailure catch (error) {
           controller.showAuthMessage(error.message);
         } catch (_) {
-          controller.showAuthMessage('We could not sign you in just yet. Please try again in a moment.');
+          controller.showAuthMessage(
+            'We could not sign you in just yet. Please try again in a moment.',
+          );
         }
         break;
 
@@ -254,21 +265,24 @@ class OnboardingScreen extends ConsumerWidget {
         try {
           final inviteCode = state.enteredInviteCode;
           if (inviteCode.isEmpty) {
-            controller.showAuthMessage('Enter your partner\'s code, or pair later for now.');
+            controller.showAuthMessage(
+              'Enter your partner\'s code to continue.',
+            );
             return;
           }
           final user = state.currentUser;
           if (user == null) return;
-          final approved = await ref.read(approvePairingUseCaseProvider).call(
-                currentUser: user,
-                inviteCode: inviteCode,
-              );
+          final approved = await ref
+              .read(approvePairingUseCaseProvider)
+              .call(currentUser: user, inviteCode: inviteCode);
           ref.read(currentPairProvider.notifier).state = approved;
           await controller.approvePairing(approved);
         } on PairingFailure catch (error) {
           controller.showAuthMessage(error.message);
         } catch (_) {
-          controller.showAuthMessage('Something did not go as expected. Please try again.');
+          controller.showAuthMessage(
+            'Something did not go as expected. Please try again.',
+          );
         }
         break;
 
@@ -289,9 +303,9 @@ class OnboardingScreen extends ConsumerWidget {
             controller.showAuthMessage('Something did not go as expected.');
             return;
           }
-          final confirmed = await ref.read(confirmPairingUseCaseProvider).call(
-                currentUser: user,
-              );
+          final confirmed = await ref
+              .read(confirmPairingUseCaseProvider)
+              .call(currentUser: user);
           await controller.confirmPairing(confirmed);
         } on PairingFailure catch (error) {
           controller.showAuthMessage(error.message);
@@ -302,10 +316,9 @@ class OnboardingScreen extends ConsumerWidget {
 
       case OnboardingStep.success:
         ref.read(onboardingCompletedProvider.notifier).state = true;
-        await ref.read(sharedPreferencesProvider).setBool(
-              onboardingCompletePreferenceKey,
-              true,
-            );
+        await ref
+            .read(sharedPreferencesProvider)
+            .setBool(onboardingCompletePreferenceKey, true);
         if (context.mounted) {
           context.go('/');
         }
@@ -324,10 +337,9 @@ class OnboardingScreen extends ConsumerWidget {
       await ref.read(skipPairingUseCaseProvider).call();
       ref.read(currentPairProvider.notifier).state = null;
       ref.read(onboardingCompletedProvider.notifier).state = true;
-      await ref.read(sharedPreferencesProvider).setBool(
-            onboardingCompletePreferenceKey,
-            true,
-          );
+      await ref
+          .read(sharedPreferencesProvider)
+          .setBool(onboardingCompletePreferenceKey, true);
       await controller.skipPairing();
       if (context.mounted) {
         context.go('/');
@@ -346,9 +358,6 @@ class _OnboardingContent extends StatelessWidget {
     this.body = '',
     this.note,
     this.noteWarning = false,
-    this.icon,
-    this.iconColor,
-    this.iconBg,
     this.checks,
     this.inputLabel,
     this.inputHint,
@@ -378,9 +387,6 @@ class _OnboardingContent extends StatelessWidget {
   final String body;
   final String? note;
   final bool noteWarning;
-  final IconData? icon;
-  final Color? iconColor;
-  final Color? iconBg;
   final List<String>? checks;
   final String? inputLabel;
   final String? inputHint;
@@ -409,24 +415,6 @@ class _OnboardingContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Optional icon
-        if (icon != null) ...[
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: iconBg ?? BcgColors.primary,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: Icon(
-              icon,
-              size: 36,
-              color: iconColor ?? BcgColors.primaryFg,
-            ),
-          ),
-          const SizedBox(height: BcgSpacing.s6),
-        ],
-
         // Eyebrow
         Text(
           eyebrow,
@@ -517,10 +505,14 @@ class _OnboardingContent extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(BcgSpacing.s4),
             decoration: BoxDecoration(
-              color: noteWarning ? BcgColors.cautionBg : BcgColors.surfaceVariant,
+              color: noteWarning
+                  ? BcgColors.cautionBg
+                  : BcgColors.surfaceVariant,
               borderRadius: BcgRadius.borderMd,
               border: noteWarning
-                  ? const Border(left: BorderSide(color: BcgColors.caution, width: 3))
+                  ? const Border(
+                      left: BorderSide(color: BcgColors.caution, width: 3),
+                    )
                   : null,
             ),
             child: Text(
@@ -537,44 +529,40 @@ class _OnboardingContent extends StatelessWidget {
         // Checks
         if (checks != null && checks!.isNotEmpty) ...[
           const SizedBox(height: BcgSpacing.s4),
-          ...checks!.map((check) => Padding(
-                padding: const EdgeInsets.only(bottom: BcgSpacing.s3),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: BcgColors.successBg,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check,
-                        size: 12,
-                        color: BcgColors.success,
-                      ),
+          ...checks!.map(
+            (check) => Padding(
+              padding: const EdgeInsets.only(bottom: BcgSpacing.s3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: BcgColors.successBg,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        check,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: BcgColors.fg,
-                        ),
-                      ),
+                    child: const Icon(
+                      Icons.check,
+                      size: 12,
+                      color: BcgColors.success,
                     ),
-                  ],
-                ),
-              )),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      check,
+                      style: TextStyle(fontSize: 14, color: BcgColors.fg),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
 
         // Child widget (for permission card etc.)
-        if (child != null) ...[
-          const SizedBox(height: BcgSpacing.s8),
-          child!,
-        ],
+        if (child != null) ...[const SizedBox(height: BcgSpacing.s8), child!],
 
         // Detail
         if (detail != null) ...[
@@ -601,10 +589,7 @@ class _OnboardingContent extends StatelessWidget {
           const SizedBox(height: BcgSpacing.s4),
           Text(
             authMessage!,
-            style: TextStyle(
-              fontSize: 13,
-              color: BcgColors.critical,
-            ),
+            style: TextStyle(fontSize: 13, color: BcgColors.critical),
           ),
         ],
       ],
@@ -641,10 +626,7 @@ class _PrototypeTextField extends StatelessWidget {
       obscureText: obscureText,
       autocorrect: false,
       enableSuggestions: !obscureText,
-      style: const TextStyle(
-        fontSize: 15,
-        color: BcgColors.fg,
-      ),
+      style: const TextStyle(fontSize: 15, color: BcgColors.fg),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -705,10 +687,7 @@ class _PermissionCard extends StatelessWidget {
           const SizedBox(height: BcgSpacing.s2),
           Text(
             description,
-            style: TextStyle(
-              fontSize: 13,
-              color: BcgColors.fgMuted,
-            ),
+            style: TextStyle(fontSize: 13, color: BcgColors.fgMuted),
           ),
           const SizedBox(height: BcgSpacing.s3),
           Container(
@@ -820,7 +799,9 @@ class _PrimaryButtonState extends State<_PrimaryButton> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(BcgColors.primaryFg),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        BcgColors.primaryFg,
+                      ),
                     ),
                   ),
                 )

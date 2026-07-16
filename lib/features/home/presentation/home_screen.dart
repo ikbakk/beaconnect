@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -260,13 +262,22 @@ class _HomeBody extends StatelessWidget {
               crossFadeState: isLive
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
-              firstChild: BcgInteractiveMapPreview(
-                label: home.placeSnapshot?.placeLabel ??
-                    'Tap to add your current place',
-                latitude: home.placeSnapshot?.latitude,
-                longitude: home.placeSnapshot?.longitude,
-                isUpdating: placeState.isCapturing,
-                onTap: onOpenMap,
+              firstChild: Stack(
+                children: [
+                  BcgInteractiveMapPreview(
+                    label: home.placeSnapshot?.placeLabel ??
+                        'Tap to add your current place',
+                    latitude: home.placeSnapshot?.latitude,
+                    longitude: home.placeSnapshot?.longitude,
+                    onTap: onOpenMap,
+                  ),
+                  if (placeState.isCapturing)
+                    const Positioned(
+                      right: BcgSpacing.s3,
+                      top: BcgSpacing.s3,
+                      child: _OneShotProgressRing(),
+                    ),
+                ],
               ),
               secondChild: _LiveHeroMap(
                 label: home.placeSnapshot?.placeLabel ?? 'Sharing your area',
@@ -636,4 +647,88 @@ String _formatLiveDuration(LiveSharingSession? session) {
   final h = m ~/ 60;
   final r = m % 60;
   return r == 0 ? '${h}h' : '${h}h ${r}m';
+}
+
+/// One-time, non-looping progress ring used by the home map tile to
+/// acknowledge a place-capture request. Renders a track + arc that fills
+/// forward over 1.2s and then sits at 100% — does not `repeat()`. Sits
+/// inside a small surface chip for legibility on any tile background. The
+/// Calm Test explicitly forbids repeating pulses; the parent removes the
+/// ring when `isCapturing` becomes false.
+class _OneShotProgressRing extends StatefulWidget {
+  const _OneShotProgressRing();
+
+  @override
+  State<_OneShotProgressRing> createState() => _OneShotProgressRingState();
+}
+
+class _OneShotProgressRingState extends State<_OneShotProgressRing>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(milliseconds: 1200),
+    vsync: this,
+  )..forward();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: BcgColors.surfaceOverlay,
+        borderRadius: BorderRadius.circular(9999),
+        border: Border.all(color: BcgColors.outline, width: 1),
+      ),
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return CustomPaint(
+            size: const Size(20, 20),
+            painter: _ProgressRingPainter(progress: _controller.value),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ProgressRingPainter extends CustomPainter {
+  _ProgressRingPainter({required this.progress});
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = (size.shortestSide - 2) / 2;
+    final track = Paint()
+      ..color = BcgColors.outlineStrong
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    final arc = Paint()
+      ..color = BcgColors.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round;
+    canvas.drawCircle(center, radius, track);
+    if (progress > 0) {
+      final rect = Rect.fromCircle(center: center, radius: radius);
+      canvas.drawArc(
+        rect,
+        -math.pi / 2,
+        2 * math.pi * progress,
+        false,
+        arc,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_ProgressRingPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

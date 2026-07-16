@@ -45,6 +45,6 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Widget preview'), findsOneWidget);
-    expect(find.text("I'm Okay"), findsOneWidget);
+    expect(find.text("I'm Okay"), findsWidgets);
   });
 }

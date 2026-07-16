@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/typography/bcg_typography.dart';
 
 /// Beaconnect theme - matches design/prototype/beaconnect.css
 /// Uses warm terracotta palette and soft off-white surfaces
@@ -46,85 +47,11 @@ abstract final class BeaconnectTheme {
       scaffoldBackgroundColor: surface,
 
       // ── Text ────────────────────────────────────────────────────────────────
-      textTheme: const TextTheme(
-        // Display headlines (partner card name, onboarding)
-        headlineLarge: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 28,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.03,
-          height: 1.2,
-          color: fg,
-        ),
-        headlineMedium: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 22,
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.03,
-          height: 1.2,
-          color: fg,
-        ),
-        headlineSmall: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.02,
-          height: 1.25,
-          color: fg,
-        ),
-        // Screen headers
-        titleLarge: TextStyle(
-          fontFamily: 'Plus Jakarta Sans',
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.02,
-          height: 1.3,
-          color: fg,
-        ),
-        // Partner card status
-        titleMedium: TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          letterSpacing: -0.01,
-          height: 1.35,
-          color: fg,
-        ),
-        // General body
-        bodyLarge: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          height: 1.5,
-          color: fg,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-          height: 1.4,
-          color: fg,
-        ),
-        // Descriptions
-        bodySmall: TextStyle(
-          fontSize: 13,
-          height: 1.4,
-          color: fgMuted,
-        ),
-        // Mono text (timestamps, badges)
-        labelMedium: TextStyle(
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          height: 1.4,
-          color: fgMuted,
-        ),
-        labelSmall: TextStyle(
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.02,
-          height: 1.4,
-          color: fgMuted,
-        ),
-      ),
+      // Loaded Google Fonts (Plus Jakarta Sans / IBM Plex Sans / IBM Plex Mono)
+      // via the canonical `BcgTypography.textTheme` so any consumer of
+      // `Theme.of(context).textTheme.foo` also gets the proper face instead
+      // of silently falling back to `system-ui`.
+      textTheme: BcgTypography.textTheme,
 
       // ── Cards ───────────────────────────────────────────────────────────────
       cardTheme: CardThemeData(

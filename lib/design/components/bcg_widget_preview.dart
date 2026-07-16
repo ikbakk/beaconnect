@@ -51,8 +51,8 @@ class BcgWidgetPreview extends StatelessWidget {
             children: [
               Text(
                 partnerName,
-                style: BcgTypography.bodySmall.copyWith(
-                  fontFamily: BcgTypography.fontDisplay,
+                style: BcgTypography.displaySmall.copyWith(
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -144,10 +144,9 @@ class BcgWidgetPreviewCompact extends StatelessWidget {
             children: [
               Text(
                 '$partnerName $symbol',
-                style: BcgTypography.labelSmall.copyWith(
-                  fontFamily: BcgTypography.fontDisplay,
-                  fontWeight: FontWeight.w700,
+                style: BcgTypography.displaySmall.copyWith(
                   fontSize: 11,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ],

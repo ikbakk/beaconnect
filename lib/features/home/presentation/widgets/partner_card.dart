@@ -47,9 +47,11 @@ class PartnerCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: BcgSpacing.s2),
-                  // Pair symbol (star)
+                  // Pair symbol — sourced from the partner's My Beacon
+                  // preferences, not hardcoded. Renders in the same
+                  // position as the prototype.
                   Text(
-                    '★',
+                    summary.pairSymbol,
                     style: TextStyle(
                       fontSize: 16,
                       color: BcgColors.caution,

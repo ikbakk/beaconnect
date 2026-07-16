@@ -104,8 +104,8 @@ class _CheckInButtonState extends ConsumerState<CheckInButton> {
       CheckInStatus.sending => 'Letting ${state.partnerName} know…',
       CheckInStatus.success => '${state.partnerName} now knows you\'re around.',
       CheckInStatus.cooldown => 'You recently checked in.',
-      CheckInStatus.unavailable => "I'm Okay",
-      CheckInStatus.idle => "I'm Okay",
+      CheckInStatus.unavailable => state.idleLabel,
+      CheckInStatus.idle => state.idleLabel,
     };
   }
 }

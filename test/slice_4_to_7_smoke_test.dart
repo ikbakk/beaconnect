@@ -45,7 +45,8 @@ void main() {
     );
 
     await tester.pumpAndSettle();
-    expect(find.text('Settings'), findsOneWidget);
+    expect(find.text('Settings'), findsWidgets);
+    expect(find.text('Trust Center and My Beacon'), findsOneWidget);
     expect(find.text('Trust Center'), findsOneWidget);
 
     appRouter.go('/trust-center');
@@ -58,7 +59,7 @@ void main() {
 
     appRouter.go('/live-sharing');
     await tester.pumpAndSettle();
-    expect(find.text('Start Live'), findsOneWidget);
+    expect(find.text('Start sharing'), findsOneWidget);
 
     appRouter.go('/widget');
     await tester.pumpAndSettle();

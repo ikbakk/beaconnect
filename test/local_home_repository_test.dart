@@ -66,7 +66,11 @@ void main() {
     final snapshot = await repository.getSnapshot();
 
     expect(snapshot.variant, HomeStateVariant.normal);
-    expect(snapshot.partnerSummary.name, 'Asha ★');
+    // The repository owns the partner name; the pair symbol is a separate
+    // field on `PartnerSummary` so the card can render it in its intended
+    // visual position without re-concatenating into the name (A9).
+    expect(snapshot.partnerSummary.name, 'Asha');
+    expect(snapshot.partnerSummary.pairSymbol, '★');
   });
 
   test('does not invent updates for a newly connected home snapshot', () async {

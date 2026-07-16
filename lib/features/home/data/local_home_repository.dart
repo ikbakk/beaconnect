@@ -35,7 +35,7 @@ class LocalHomeRepository implements HomeRepository {
     final placeSnapshot = await _placeSnapshotRepository.getLatestSnapshot();
     final liveSession = await _liveSharingRepository.getCurrentSession();
     final beaconPrefs = await _myBeaconRepository.getPreferences();
-    final partnerName = _partnerName(beaconPrefs.pairSymbol);
+    final partnerName = _partnerName();
     final recentUpdates = updates.take(2).toList();
 
     if (!_session.hasPartner) {
@@ -59,6 +59,7 @@ class LocalHomeRepository implements HomeRepository {
             : HomeStateVariant.liveSharing,
         partnerSummary: PartnerSummary(
           name: partnerName,
+          pairSymbol: beaconPrefs.pairSymbol,
           statusSentence: liveSession.isPaused
               ? 'Sharing is currently paused.'
               : 'Sharing live.',
@@ -76,6 +77,7 @@ class LocalHomeRepository implements HomeRepository {
         variant: HomeStateVariant.permissionMissing,
         partnerSummary: PartnerSummary(
           name: partnerName,
+          pairSymbol: beaconPrefs.pairSymbol,
           statusSentence: 'Sharing is not fully available yet.',
           freshnessSentence:
               'Background sharing works best when permission is enabled.',
@@ -90,6 +92,7 @@ class LocalHomeRepository implements HomeRepository {
         variant: HomeStateVariant.noNewUpdates,
         partnerSummary: PartnerSummary(
           name: partnerName,
+          pairSymbol: beaconPrefs.pairSymbol,
           statusSentence: 'No new updates yet.',
           freshnessSentence: _freshnessSentence(
             placeSnapshot,
@@ -105,6 +108,7 @@ class LocalHomeRepository implements HomeRepository {
       variant: HomeStateVariant.normal,
       partnerSummary: PartnerSummary(
         name: partnerName,
+        pairSymbol: beaconPrefs.pairSymbol,
         statusSentence: 'Everything looks normal.',
         freshnessSentence: _freshnessSentence(placeSnapshot),
       ),
@@ -113,9 +117,12 @@ class LocalHomeRepository implements HomeRepository {
     );
   }
 
-  String _partnerName(String pairSymbol) {
-    final baseName = _session.currentPair?.partnerDisplayName ?? 'Your partner';
-    return '$baseName $pairSymbol'.trim();
+  /// Returns the partner's display name only. The pair symbol is owned by
+  /// `MyBeaconPreferences` and surfaced as a separate field on
+  /// `PartnerSummary` so the partner card can render the symbol in the
+  /// intended visual position (next to the name, not inside the name).
+  String _partnerName() {
+    return _session.currentPair?.partnerDisplayName ?? 'Your partner';
   }
 
   String _liveFreshnessSentence(LiveSharingSession liveSession) {

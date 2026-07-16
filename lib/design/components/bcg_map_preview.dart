@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../bcg_theme.dart';
 import '../colors/bcg_colors.dart';
 import '../spacing/bcg_radius.dart';
 import '../spacing/bcg_spacing.dart';
@@ -126,21 +127,30 @@ class BcgLiveMapPreview extends StatelessWidget {
 }
 
 class _PulsingDot extends StatefulWidget {
+  const _PulsingDot();
+
   @override
   State<_PulsingDot> createState() => _PulsingDotState();
 }
 
 class _PulsingDotState extends State<_PulsingDot>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(milliseconds: 1200),
+    vsync: this,
+  );
+  late final Animation<double> _animation = CurvedAnimation(
+    parent: _controller,
+    curve: BcgMotion.easeOut,
+  );
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1800),
-      vsync: this,
-    )..repeat(reverse: true);
+    // One-time pulse on mount — never repeat. See design/tokens/motion-tokens.md:
+    // "Avoid ... repeated pulse" and interaction-language.md "Do not use
+    // repeated pulsing." The pulse is a single 0.4 → 1.0 → settle gesture.
+    _controller.forward();
   }
 
   @override
@@ -151,18 +161,20 @@ class _PulsingDotState extends State<_PulsingDot>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.4 + 0.6 * _controller.value),
-            shape: BoxShape.circle,
-          ),
-        );
-      },
+    return FadeTransition(
+      opacity: _animation.drive(
+        Tween<double>(begin: 0.45, end: 1.0).chain(
+          CurveTween(curve: Curves.easeOut),
+        ),
+      ),
+      child: Container(
+        width: 6,
+        height: 6,
+        decoration: const BoxDecoration(
+          color: BcgColors.primaryFg,
+          shape: BoxShape.circle,
+        ),
+      ),
     );
   }
 }

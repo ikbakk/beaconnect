@@ -16,6 +16,7 @@ class TrustCenterScreen extends ConsumerWidget {
     final session = ref.watch(appSessionProvider);
     final permissions = ref.watch(permissionStatusProvider);
     final batterySaver = ref.watch(batterySaverEnabledProvider);
+    final partnerName = session.currentPair?.partnerDisplayName ?? 'your partner';
 
     return Scaffold(
       backgroundColor: BcgColors.surface,
@@ -93,7 +94,7 @@ class TrustCenterScreen extends ConsumerWidget {
                   _TrustSection(
                     title: 'Our Connection',
                     description: session.hasPartner
-                        ? 'You and Sarah are connected through mutual sharing. Connections are always voluntary and can be ended at any time by either person.'
+                        ? 'You and $partnerName are connected through mutual sharing. Connections are always voluntary and can be ended at any time by either person.'
                         : 'Beaconnect starts with mutual consent. Invite your partner when both of you are ready.',
                     statusLabel: session.hasPartner
                         ? 'Connected with care'
@@ -397,116 +398,6 @@ class _HandbookCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  const _BottomNav({
-    required this.currentRoute,
-    required this.onHome,
-    required this.onUpdates,
-    required this.onSettings,
-  });
-
-  final String currentRoute;
-  final VoidCallback onHome;
-  final VoidCallback onUpdates;
-  final VoidCallback onSettings;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: BcgSpacing.navH,
-      decoration: BoxDecoration(
-        color: BcgColors.surfaceOverlay,
-        border: const Border(
-          top: BorderSide(color: BcgColors.outline, width: 0.5),
-        ),
-      ),
-      child: Row(
-        children: [
-          _NavButton(
-            label: 'Home',
-            icon: Icons.home_rounded,
-            isActive: currentRoute == '/',
-            onTap: onHome,
-          ),
-          _NavButton(
-            label: 'Updates',
-            icon: Icons.notifications_outlined,
-            isActive: currentRoute == '/updates',
-            onTap: onUpdates,
-          ),
-          _NavButton(
-            label: 'Settings',
-            icon: Icons.settings_outlined,
-            isActive: currentRoute == '/settings',
-            onTap: onSettings,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NavButton extends StatelessWidget {
-  const _NavButton({
-    required this.label,
-    required this.icon,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            if (isActive)
-              Positioned(
-                left: 12,
-                right: 12,
-                top: 6,
-                bottom: 6,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: BcgColors.primary.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(9999),
-                  ),
-                ),
-              ),
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: isActive ? BcgColors.primary : BcgColors.fgMuted,
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                    color: isActive ? BcgColors.primary : BcgColors.fgMuted,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }

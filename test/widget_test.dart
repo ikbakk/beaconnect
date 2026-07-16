@@ -22,8 +22,11 @@ void main() {
 
     await _pumpApp(tester, preferences: preferences);
 
-    expect(find.text('A quieter way to stay close.'), findsOneWidget);
-    expect(find.text('Get started'), findsOneWidget);
+    expect(
+      find.text('Built for reassurance,\nnot surveillance.'),
+      findsOneWidget,
+    );
+    expect(find.text('Get Started'), findsOneWidget);
   });
 
   testWidgets('can move through pairing into the home shell', (tester) async {
@@ -32,8 +35,8 @@ void main() {
     await _pumpApp(tester, preferences: preferences);
     await _createAccountUntilPairing(tester);
 
-    await tester.ensureVisible(find.text('Pair later'));
-    await tester.tap(find.text('Pair later'));
+    await tester.ensureVisible(find.text('Skip for now'));
+    await tester.tap(find.text('Skip for now'));
     await tester.pumpAndSettle();
 
     expect(find.text('Connections are always mutual.'), findsNothing);
@@ -47,8 +50,8 @@ void main() {
     await _createAccountUntilPairing(tester);
 
     await tester.enterText(find.byType(TextField).first, '482915');
-    await tester.ensureVisible(find.text('Continue'));
-    await tester.tap(find.text('Continue'));
+    await tester.ensureVisible(find.text('Generate Code'));
+    await tester.tap(find.text('Generate Code'));
     await tester.pumpAndSettle();
     await _finishPairingFlow(tester);
 
@@ -121,7 +124,7 @@ Future<void> _pumpApp(
 }
 
 Future<void> _createAccountUntilPairing(WidgetTester tester) async {
-  await tester.tap(find.text('Get started'));
+  await tester.tap(find.text('Get Started'));
   await tester.pumpAndSettle();
   await tester.enterText(find.byType(TextField).at(0), 'iqbal@example.com');
   await tester.pump();
@@ -131,7 +134,7 @@ Future<void> _createAccountUntilPairing(WidgetTester tester) async {
   await tester.pumpAndSettle();
   await tester.enterText(find.byType(TextField).at(2), 'password123');
   await tester.pump();
-  await tester.tap(find.text('Create account'));
+  await tester.tap(find.text('Continue'));
   await tester.pumpAndSettle();
 }
 

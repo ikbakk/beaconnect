@@ -147,23 +147,29 @@ class _MyBeaconScreenState extends ConsumerState<MyBeaconScreen> {
                         onAction: _savePreferences,
                       ),
 
-                      // Home Screen Widget
+                      // Home Screen Widget — badge removed (A36): widget is not
+                      // actually configured; showing "Active" was a calm-axis
+                      // lie. The Configure action still routes the user to
+                      // the widget preview screen where the real state is
+                      // surfaced.
                       _BeaconModule(
                         label: 'Home Screen Widget',
                         description: 'Add a quick reassurance glance to your Android home screen.',
                         chips: [],
-                        trailing: _Badge(label: 'Active', variant: 'success'),
                         actionLabel: 'Configure →',
                         onAction: () => context.go('/home/widget'),
                       ),
 
-                      // Quiet Hours
+                      // Quiet Hours — badge removed (A36): the quiet-hours
+                      // window is not actually implemented. The Edit action
+                      // surfaces a calm toast so the user knows the editor
+                      // is not ready yet, rather than promising a window
+                      // that does not exist.
                       _BeaconModule(
                         label: 'Quiet Hours',
                         description: 'Pause notifications during set hours so Beaconnect stays calm at night.',
                         currentLabel: null,
                         chips: [],
-                        trailing: _Badge(label: '10:00 PM – 7:00 AM', variant: 'warn'),
                         actionLabel: 'Edit →',
                         onAction: () => _showCalmToast('Quiet hours editor is not ready yet.'),
                       ),
@@ -264,7 +270,6 @@ class _BeaconModule extends StatelessWidget {
     required this.description,
     this.currentLabel,
     required this.chips,
-    this.trailing,
     this.child,
     required this.actionLabel,
     required this.onAction,
@@ -274,7 +279,6 @@ class _BeaconModule extends StatelessWidget {
   final String description;
   final String? currentLabel;
   final List<Widget> chips;
-  final Widget? trailing;
   final Widget? child;
   final String actionLabel;
   final VoidCallback onAction;
@@ -335,12 +339,6 @@ class _BeaconModule extends StatelessWidget {
           if (child != null) ...[
             const SizedBox(height: BcgSpacing.s3),
             child!,
-          ],
-
-          // Trailing widget (e.g., badge)
-          if (trailing != null && chips.isEmpty) ...[
-            const SizedBox(height: BcgSpacing.s3),
-            trailing!,
           ],
 
           // Action
@@ -419,36 +417,6 @@ class _Chip extends StatelessWidget {
           fontSize: 11,
           fontWeight: FontWeight.w500,
           color: BcgColors.fg,
-        ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.variant});
-
-  final String label;
-  final String variant; // 'success', 'warn'
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = variant == 'success' ? BcgColors.successBg : BcgColors.cautionBg;
-    final textColor = variant == 'success' ? BcgColors.success : BcgColors.caution;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(9999),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: 'IBM Plex Mono',
-          fontSize: 11,
-          fontWeight: FontWeight.w500,
-          color: textColor,
         ),
       ),
     );

@@ -6,6 +6,7 @@ import '../core/config/app_config.dart';
 import '../core/config/app_data_source.dart';
 import '../core/permissions/application/enable_permission_education_use_case.dart';
 import '../core/permissions/application/get_permission_status_use_case.dart';
+import '../core/permissions/application/open_system_settings_use_case.dart';
 import '../core/permissions/data/local_permission_repository.dart';
 import '../core/permissions/domain/permission_repository.dart';
 import '../core/permissions/domain/permission_status.dart';
@@ -210,6 +211,9 @@ final getPermissionStatusUseCaseProvider = Provider<GetPermissionStatusUseCase>(
 );
 final enablePermissionEducationUseCaseProvider = Provider<EnablePermissionEducationUseCase>(
   (ref) => EnablePermissionEducationUseCase(ref.watch(permissionRepositoryProvider)),
+);
+final openSystemSettingsUseCaseProvider = Provider<OpenSystemSettingsUseCase>(
+  (ref) => OpenSystemSettingsUseCase(ref.watch(permissionRepositoryProvider)),
 );
 final sendCheckInUseCaseProvider = Provider<SendCheckInUseCase>(
   (ref) => SendCheckInUseCase(

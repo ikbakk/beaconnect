@@ -61,6 +61,20 @@ class LocalPermissionRepository implements PermissionRepository {
     }
   }
 
+  @override
+  Future<void> openSystemSettings() async {
+    if (!_supportsRuntimePermissions) {
+      return;
+    }
+    try {
+      await permission_handler.openAppSettings();
+    } on MissingPluginException {
+      // Platform doesn't support opening settings (e.g. test/desktop).
+    } catch (_) {
+      // Swallow — opening settings is a best-effort affordance.
+    }
+  }
+
   bool get _supportsRuntimePermissions => Platform.isAndroid || Platform.isIOS;
 
   PermissionStatus _readFallbackStatus() {

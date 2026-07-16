@@ -127,6 +127,11 @@ class _FakePermissionRepository implements PermissionRepository {
   Future<PermissionStatus> getStatus() async {
     return _status;
   }
+
+  @override
+  Future<void> openSystemSettings() async {
+    // No-op for tests — the real implementation delegates to permission_handler.
+  }
 }
 
 class _FakePlaceSnapshotRepository implements PlaceSnapshotRepository {

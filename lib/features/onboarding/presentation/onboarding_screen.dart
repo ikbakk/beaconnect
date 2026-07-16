@@ -6,6 +6,7 @@ import '../../../app/providers.dart';
 import '../../../design/colors/bcg_colors.dart';
 import '../../../design/spacing/bcg_spacing.dart';
 import '../../../design/spacing/bcg_radius.dart';
+import '../../../design/components/components.dart';
 import '../../auth/domain/auth_failure.dart';
 import '../application/onboarding_controller.dart';
 import '../domain/onboarding_step.dart';
@@ -58,7 +59,7 @@ class OnboardingScreen extends ConsumerWidget {
 
                   // Primary button
                   _PrimaryButton(
-                    label: _getPrimaryLabel(state.step),
+                    label: _getPrimaryLabel(state),
                     isLoading: state.isWorking,
                     onPressed: () =>
                         _handlePrimary(context, ref, state, controller),
@@ -155,17 +156,32 @@ class OnboardingScreen extends ConsumerWidget {
         );
 
       case OnboardingStep.permissions:
+        final statusAsync = ref.watch(permissionStatusProvider);
+        final status = statusAsync.maybeWhen(
+          data: (value) => value,
+          orElse: () => null,
+        );
+        final isGranted = status?.locationSharingEnabled ?? false;
         return _OnboardingContent(
           eyebrow: 'Permissions',
           headline: 'Location access',
           body:
-              'Beaconnect uses your location to share with Sarah — only when you choose to, and only visible to her.',
-          child: _PermissionCard(
+              'Beaconnect uses your location to share with your partner — only when you choose to, and only visible to them.',
+          child: BcgPermissionCard(
             whyTitle: 'Why does Beaconnect need this?',
             description:
-                'So Sarah can see where you are when you choose to share — not all the time, only during live sharing sessions.',
-            statusLabel: 'Enabled',
-            isEnabled: true,
+                'So your partner can see where you are when you choose to share — not all the time, only during live sharing sessions.',
+            statusLabel: isGranted
+                ? 'Location granted'
+                : 'Location not granted',
+            status: isGranted
+                ? BcgPermissionStatus.ok
+                : BcgPermissionStatus.warn,
+            actionLabel: 'Open settings',
+            onAction: () async {
+              await ref.read(openSystemSettingsUseCaseProvider).call();
+              ref.invalidate(permissionStatusProvider);
+            },
           ),
         );
 
@@ -187,11 +203,14 @@ class OnboardingScreen extends ConsumerWidget {
     }
   }
 
-  String _getPrimaryLabel(OnboardingStep step) {
-    return switch (step) {
+  String _getPrimaryLabel(OnboardingState state) {
+    return switch (state.step) {
       OnboardingStep.welcome => 'Get Started',
       OnboardingStep.account => 'Continue',
-      OnboardingStep.pairing => 'Generate Code',
+      OnboardingStep.pairing =>
+        state.enteredInviteCode.isEmpty
+            ? 'Generate Code'
+            : 'Connect with partner',
       OnboardingStep.permissions => 'Continue',
       OnboardingStep.connected => 'Continue',
       OnboardingStep.success => 'Open Home',
@@ -306,6 +325,7 @@ class OnboardingScreen extends ConsumerWidget {
           final confirmed = await ref
               .read(confirmPairingUseCaseProvider)
               .call(currentUser: user);
+          ref.read(currentPairProvider.notifier).state = confirmed;
           await controller.confirmPairing(confirmed);
         } on PairingFailure catch (error) {
           controller.showAuthMessage(error.message);
@@ -609,78 +629,6 @@ class _PrototypeTextField extends StatelessWidget {
           borderRadius: BcgRadius.borderMd,
           borderSide: const BorderSide(color: BcgColors.primary, width: 1.5),
         ),
-      ),
-    );
-  }
-}
-
-/// Permission card widget
-class _PermissionCard extends StatelessWidget {
-  const _PermissionCard({
-    required this.whyTitle,
-    required this.description,
-    required this.statusLabel,
-    required this.isEnabled,
-  });
-
-  final String whyTitle;
-  final String description;
-  final String statusLabel;
-  final bool isEnabled;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(BcgSpacing.s5),
-      decoration: BoxDecoration(
-        color: BcgColors.surfaceVariant,
-        borderRadius: BcgRadius.borderMd,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            whyTitle,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: BcgColors.fg,
-            ),
-          ),
-          const SizedBox(height: BcgSpacing.s2),
-          Text(
-            description,
-            style: TextStyle(fontSize: 13, color: BcgColors.fgMuted),
-          ),
-          const SizedBox(height: BcgSpacing.s3),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: isEnabled ? BcgColors.successBg : BcgColors.cautionBg,
-              borderRadius: BorderRadius.circular(9999),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isEnabled ? Icons.check_circle : Icons.warning,
-                  size: 12,
-                  color: isEnabled ? BcgColors.success : BcgColors.caution,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  statusLabel,
-                  style: TextStyle(
-                    fontFamily: 'IBM Plex Mono',
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: isEnabled ? BcgColors.success : BcgColors.caution,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

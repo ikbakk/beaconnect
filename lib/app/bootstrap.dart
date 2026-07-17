@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,6 +14,7 @@ import '../features/auth/data/local_auth_repository.dart';
 import '../features/pairing/data/firebase_pairing_repository.dart';
 import '../features/pairing/data/local_pairing_repository.dart';
 import '../features/place_snapshot/data/local_place_snapshot_repository.dart';
+import '../features/notifications/data/firebase_messaging_service.dart';
 import '../firebase_options.dart';
 import 'app.dart';
 import 'bootstrap_state.dart';
@@ -38,6 +40,7 @@ Future<void> bootstrap() async {
     }
 
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
   }
 
   final authRepository = switch (appConfig.dataSource) {
@@ -45,6 +48,14 @@ Future<void> bootstrap() async {
     AppDataSource.firebase => FirebaseAuthRepository(),
   };
   final currentUser = await authRepository.getCurrentUser();
+
+  if (appConfig.dataSource == AppDataSource.firebase && currentUser != null) {
+    try {
+      await FirebaseMessagingService().initialize(userId: currentUser.id);
+    } catch (_) {
+      // Notification setup should never prevent the app from opening.
+    }
+  }
 
   final pairingRepository = switch (appConfig.dataSource) {
     AppDataSource.local => LocalPairingRepository(preferences),
@@ -57,9 +68,8 @@ Future<void> bootstrap() async {
     preferences,
   ).getLatestSnapshot();
 
-  final hasCompletedOnboarding =
-      preferences.getBool(onboardingCompletePreferenceKey) ??
-      (currentPair?.status == 'active');
+  // A local completion flag must never unlock the app without an active pair.
+  final hasCompletedOnboarding = currentPair?.status == 'active';
 
   runApp(
     ProviderScope(

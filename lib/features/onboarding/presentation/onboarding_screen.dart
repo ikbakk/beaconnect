@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -10,15 +12,113 @@ import '../../../design/components/components.dart';
 import '../../auth/domain/auth_failure.dart';
 import '../application/onboarding_controller.dart';
 import '../domain/onboarding_step.dart';
+import '../../pairing/domain/pair_record.dart';
 import '../../pairing/domain/pairing_failure.dart';
 
 /// Onboarding screen - matches design/prototype/beaconnect-app.html
 /// 6-step onboarding with pill navigation dots
-class OnboardingScreen extends ConsumerWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+  Timer? _pairingPoll;
+  Timer? _expiryTimer;
+  bool _isCheckingPair = false;
+  DateTime? _pairCodeExpiresAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _pairingPoll = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => _checkForPartnerApproval(),
+    );
+    _expiryTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && _pairCodeExpiresAt != null) setState(() {});
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _restorePairingState());
+  }
+
+  @override
+  void dispose() {
+    _pairingPoll?.cancel();
+    _expiryTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _restorePairingState() async {
+    if (!mounted) return;
+    final state = ref.read(onboardingControllerProvider);
+    final pair = ref.read(currentPairProvider);
+    final user = ref.read(currentUserProvider);
+    if (state.step != OnboardingStep.welcome || pair == null || user == null) {
+      return;
+    }
+    if (pair.status != 'pending') return;
+    _setPairCodeExpiry(pair);
+
+    final controller = ref.read(onboardingControllerProvider.notifier);
+    if (pair.memberIds.length >= 2) {
+      controller.partnerApproved(pair);
+      return;
+    }
+
+    await controller.signIn(user);
+    await controller.preparePairing(pair);
+  }
+
+  Future<void> _checkForPartnerApproval() async {
+    if (_isCheckingPair) return;
+    final state = ref.read(onboardingControllerProvider);
+    final pair = state.currentPair;
+    if (state.step != OnboardingStep.pairing ||
+        pair == null ||
+        pair.status != 'pending' ||
+        pair.memberIds.length != 1) {
+      return;
+    }
+
+    _isCheckingPair = true;
+    try {
+      final latestPair = await ref.read(loadCurrentPairUseCaseProvider).call();
+      if (!mounted || latestPair == null || latestPair.memberIds.length < 2) {
+        return;
+      }
+
+      ref.read(currentPairProvider.notifier).state = latestPair;
+      ref
+          .read(onboardingControllerProvider.notifier)
+          .partnerApproved(latestPair);
+    } finally {
+      _isCheckingPair = false;
+    }
+  }
+
+  void _setPairCodeExpiry(PairRecord pair) {
+    if (pair.memberIds.length != 1 || _pairCodeExpiresAt != null) return;
+    _pairCodeExpiresAt = DateTime.now().add(
+      Duration(minutes: pair.expiresInMinutes),
+    );
+  }
+
+  String _pairCodeExpiryLabel(PairRecord pair) {
+    _setPairCodeExpiry(pair);
+    final expiresAt = _pairCodeExpiresAt;
+    if (expiresAt == null) return 'Expires in 05:00';
+    final seconds = expiresAt.difference(DateTime.now()).inSeconds;
+    if (seconds <= 0) return 'This code has expired.';
+    final minutes = seconds ~/ 60;
+    final remainder = seconds % 60;
+    return 'Expires in ${minutes.toString().padLeft(2, '0')}:${remainder.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ref = this.ref;
     final state = ref.watch(onboardingControllerProvider);
     final controller = ref.read(onboardingControllerProvider.notifier);
 
@@ -150,8 +250,8 @@ class OnboardingScreen extends ConsumerWidget {
           inputValue: state.enteredInviteCode,
           onInputChanged: controller.updateInviteCode,
           textCapitalization: TextCapitalization.characters,
-          detail:
-              'Your code: ${state.inviteCode}\nExpires in ${state.expiresInMinutes} minutes.',
+          detail: _pairCodeExpiryLabel(state.currentPair!),
+          detailCode: state.inviteCode,
           authMessage: state.authMessage,
         );
 
@@ -161,7 +261,7 @@ class OnboardingScreen extends ConsumerWidget {
           data: (value) => value,
           orElse: () => null,
         );
-        final isGranted = status?.locationSharingEnabled ?? false;
+        final isReady = status?.isReadyForSharing ?? false;
         return _OnboardingContent(
           eyebrow: 'Permissions',
           headline: 'Location access',
@@ -171,15 +271,15 @@ class OnboardingScreen extends ConsumerWidget {
             whyTitle: 'Why does Beaconnect need this?',
             description:
                 'So your partner can see where you are when you choose to share — not all the time, only during live sharing sessions.',
-            statusLabel: isGranted
-                ? 'Location granted'
-                : 'Location not granted',
-            status: isGranted
-                ? BcgPermissionStatus.ok
-                : BcgPermissionStatus.warn,
-            actionLabel: 'Open settings',
+            statusLabel: isReady
+                ? 'Sharing ready'
+                : status?.locationSharingEnabled == true
+                ? 'Notifications needed'
+                : 'Access needed',
+            status: isReady ? BcgPermissionStatus.ok : BcgPermissionStatus.warn,
+            actionLabel: isReady ? null : 'Allow access',
             onAction: () async {
-              await ref.read(openSystemSettingsUseCaseProvider).call();
+              await ref.read(enablePermissionEducationUseCaseProvider).call();
               ref.invalidate(permissionStatusProvider);
             },
           ),
@@ -234,6 +334,7 @@ class OnboardingScreen extends ConsumerWidget {
     OnboardingState state,
     OnboardingController controller,
   ) async {
+    FocusManager.instance.primaryFocus?.unfocus();
     switch (state.step) {
       case OnboardingStep.welcome:
         controller.next();
@@ -398,6 +499,7 @@ class _OnboardingContent extends StatelessWidget {
     this.onTertiaryAction,
     this.authMessage,
     this.detail,
+    this.detailCode,
     this.child,
   });
 
@@ -426,6 +528,7 @@ class _OnboardingContent extends StatelessWidget {
   final VoidCallback? onTertiaryAction;
   final String? authMessage;
   final String? detail;
+  final String? detailCode;
   final Widget? child;
 
   @override
@@ -438,7 +541,7 @@ class _OnboardingContent extends StatelessWidget {
           eyebrow,
           style: TextStyle(
             fontFamily: 'IBM Plex Mono',
-            fontSize: 11,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
             color: BcgColors.primary,
             letterSpacing: 0.1,
@@ -556,14 +659,38 @@ class _OnboardingContent extends StatelessWidget {
               color: BcgColors.surfaceVariant,
               borderRadius: BcgRadius.borderMd,
             ),
-            child: Text(
-              detail!,
-              style: TextStyle(
-                fontFamily: 'IBM Plex Mono',
-                fontSize: 12,
-                color: BcgColors.fgMuted,
-              ),
-            ),
+            child: detailCode == null
+                ? Text(
+                    detail!,
+                    style: const TextStyle(
+                      fontFamily: 'IBM Plex Mono',
+                      fontSize: 13,
+                      color: BcgColors.fgMuted,
+                    ),
+                  )
+                : Column(
+                    children: [
+                      Text(
+                        _formatPairCode(detailCode!),
+                        style: const TextStyle(
+                          fontFamily: 'IBM Plex Mono',
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 4,
+                          color: BcgColors.fg,
+                        ),
+                      ),
+                      const SizedBox(height: BcgSpacing.s2),
+                      Text(
+                        detail!,
+                        style: const TextStyle(
+                          fontFamily: 'IBM Plex Mono',
+                          fontSize: 13,
+                          color: BcgColors.fgMuted,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ],
 
@@ -577,6 +704,11 @@ class _OnboardingContent extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  String _formatPairCode(String code) {
+    if (code.length != 6) return code;
+    return '${code.substring(0, 3)} ${code.substring(3)}';
   }
 }
 
@@ -603,6 +735,7 @@ class _PrototypeTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       initialValue: value,
+      autofocus: false,
       onChanged: onChanged,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,

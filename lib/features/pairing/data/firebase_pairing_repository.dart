@@ -6,10 +6,8 @@ import '../domain/pairing_failure.dart';
 import '../domain/pairing_repository.dart';
 
 class FirebasePairingRepository implements PairingRepository {
-  FirebasePairingRepository({
-    FirebaseFirestore? firestore,
-    this.currentUserId,
-  }) : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirebasePairingRepository({FirebaseFirestore? firestore, this.currentUserId})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
   final String? currentUserId;
@@ -23,11 +21,16 @@ class FirebasePairingRepository implements PairingRepository {
     final activePairId = userSnapshot.data()?['activePairId'] as String?;
     if (activePairId == null || activePairId.isEmpty) return null;
 
-    final pairSnapshot = await _firestore.collection('pairs').doc(activePairId).get();
+    final pairSnapshot = await _firestore
+        .collection('pairs')
+        .doc(activePairId)
+        .get();
     final pairData = pairSnapshot.data();
     if (pairData == null) return null;
 
-    final memberIds = List<String>.from(pairData['memberIds'] as List<dynamic>? ?? []);
+    final memberIds = List<String>.from(
+      pairData['memberIds'] as List<dynamic>? ?? [],
+    );
     final partnerName = await _loadPartnerName(memberIds);
 
     return PairRecord(
@@ -62,7 +65,9 @@ class FirebasePairingRepository implements PairingRepository {
     }
 
     final code = _generateInviteCode();
-    final expiresAt = Timestamp.fromDate(DateTime.now().add(const Duration(minutes: 5)));
+    final expiresAt = Timestamp.fromDate(
+      DateTime.now().add(const Duration(minutes: 5)),
+    );
     final pairDraftRef = _firestore.collection('pairs').doc();
 
     await _firestore.runTransaction((transaction) async {
@@ -84,10 +89,14 @@ class FirebasePairingRepository implements PairingRepository {
         'inviteCode': code,
       });
 
-      transaction.set(_firestore.collection('users').doc(currentUser.id), {
-        'displayName': currentUser.displayName,
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      transaction.set(
+        _firestore.collection('users').doc(currentUser.id),
+        {
+          'displayName': currentUser.displayName,
+          'createdAt': FieldValue.serverTimestamp(),
+        },
+        SetOptions(merge: true),
+      );
     });
 
     return PairRecord(
@@ -107,13 +116,13 @@ class FirebasePairingRepository implements PairingRepository {
   }) async {
     final normalizedCode = _normalizeInviteCode(inviteCode);
     if (normalizedCode.isEmpty) {
-      throw const PairingFailure(
-        'Enter your partner\'s code, or pair later for now.',
-      );
+      throw const PairingFailure('Enter your partner\'s code to continue.');
     }
 
     final result = await _firestore.runTransaction<_ApproveResult>((tx) async {
-      final inviteRef = _firestore.collection('inviteCodes').doc(normalizedCode);
+      final inviteRef = _firestore
+          .collection('inviteCodes')
+          .doc(normalizedCode);
       final inviteSnap = await tx.get(inviteRef);
       final inviteData = inviteSnap.data();
       if (!inviteSnap.exists || inviteData == null) {
@@ -161,7 +170,9 @@ class FirebasePairingRepository implements PairingRepository {
         );
       }
 
-      final memberIds = List<String>.from(pairData['memberIds'] as List<dynamic>? ?? []);
+      final memberIds = List<String>.from(
+        pairData['memberIds'] as List<dynamic>? ?? [],
+      );
       if (memberIds.contains(currentUser.id)) {
         throw const PairingFailure('You are already connected with this code.');
       }
@@ -187,11 +198,15 @@ class FirebasePairingRepository implements PairingRepository {
         'activePairId': pairId,
       }, SetOptions(merge: true));
 
-      tx.set(_firestore.collection('users').doc(currentUser.id), {
-        'displayName': currentUser.displayName,
-        'createdAt': FieldValue.serverTimestamp(),
-        'activePairId': pairId,
-      }, SetOptions(merge: true));
+      tx.set(
+        _firestore.collection('users').doc(currentUser.id),
+        {
+          'displayName': currentUser.displayName,
+          'createdAt': FieldValue.serverTimestamp(),
+          'activePairId': pairId,
+        },
+        SetOptions(merge: true),
+      );
 
       return _ApproveResult(pairId: pairId, createdBy: createdBy);
     });
@@ -242,7 +257,9 @@ class FirebasePairingRepository implements PairingRepository {
     if (pairData == null) {
       throw const PairingFailure('Connection is not ready. Try again.');
     }
-    final memberIds = List<String>.from(pairData['memberIds'] as List<dynamic>? ?? []);
+    final memberIds = List<String>.from(
+      pairData['memberIds'] as List<dynamic>? ?? [],
+    );
     final partnerName = await _loadPartnerName(memberIds);
     return PairRecord(
       id: pairSnap.id,
@@ -261,7 +278,9 @@ class FirebasePairingRepository implements PairingRepository {
     return snap.data()?['displayName'] as String? ?? 'Your partner';
   }
 
-  Future<DocumentSnapshot<Map<String, dynamic>>?> _findPendingInvite({required String createdBy}) async {
+  Future<DocumentSnapshot<Map<String, dynamic>>?> _findPendingInvite({
+    required String createdBy,
+  }) async {
     final snap = await _firestore
         .collection('inviteCodes')
         .where('createdBy', isEqualTo: createdBy)

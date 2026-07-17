@@ -70,19 +70,19 @@ class LocalPairingRepository implements PairingRepository {
   }) async {
     final normalizedInviteCode = inviteCode?.trim().toUpperCase() ?? '';
     if (normalizedInviteCode.isEmpty) {
-      throw const PairingFailure(
-        'Enter your partner\'s code, or pair later for now.',
-      );
+      throw const PairingFailure('Enter your partner\'s code to continue.');
     }
 
     final ownInviteCode = _preferences.getString(_inviteCodeKey);
     final ownInviteOwner = _preferences.getString(_inviteOwnerKey);
     final ownInviteExpiresAt = _preferences.getInt(_inviteExpiresAtKey);
-    if (ownInviteCode == normalizedInviteCode && ownInviteOwner == currentUser.id) {
-      final isExpired = ownInviteExpiresAt != null &&
-          DateTime.fromMillisecondsSinceEpoch(ownInviteExpiresAt).isBefore(
-            DateTime.now(),
-          );
+    if (ownInviteCode == normalizedInviteCode &&
+        ownInviteOwner == currentUser.id) {
+      final isExpired =
+          ownInviteExpiresAt != null &&
+          DateTime.fromMillisecondsSinceEpoch(
+            ownInviteExpiresAt,
+          ).isBefore(DateTime.now());
       if (isExpired) {
         throw const PairingFailure('That code is no longer available.');
       }
@@ -116,9 +116,7 @@ class LocalPairingRepository implements PairingRepository {
       return pair;
     }
     if (!pair.memberIds.contains(currentUser.id)) {
-      throw const PairingFailure(
-        'You are not part of this connection.',
-      );
+      throw const PairingFailure('You are not part of this connection.');
     }
     final confirmed = PairRecord(
       id: pair.id,

@@ -101,3 +101,7 @@ When real Firebase credentials are ready, replace the placeholders with:
 Reference:
 
 - `docs/04-implementation/firebase-credentials.md`
+
+## One-Phone Pairing Test
+
+Use `tools/pairing-companion/` to act as the second partner while testing the real pairing flow with one Android phone. See its README for the local server command and test steps.

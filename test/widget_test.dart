@@ -29,18 +29,46 @@ void main() {
     expect(find.text('Get Started'), findsOneWidget);
   });
 
-  testWidgets('can move through pairing into the home shell', (tester) async {
+  testWidgets('cannot skip pairing', (tester) async {
     final preferences = await SharedPreferences.getInstance();
 
     await _pumpApp(tester, preferences: preferences);
     await _createAccountUntilPairing(tester);
 
-    await tester.ensureVisible(find.text('Skip for now'));
-    await tester.tap(find.text('Skip for now'));
+    expect(find.text('Skip for now'), findsNothing);
+    expect(find.text('Generate Code'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('direct home access is gated without an active pair', (
+    tester,
+  ) async {
+    final preferences = await SharedPreferences.getInstance();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(preferences),
+          bootstrapStateProvider.overrideWithValue(
+            const BootstrapState(
+              currentUser: AppUser(id: 'user-1', displayName: 'Iqbal'),
+              currentPair: null,
+              hasCompletedOnboarding: true,
+              latestPlaceSnapshot: null,
+            ),
+          ),
+        ],
+        child: const BeaconnectApp(),
+      ),
+    );
+    appRouter.go('/home');
     await tester.pumpAndSettle();
 
-    expect(find.text('Connections are always mutual.'), findsNothing);
-    expect(tester.takeException(), isNull);
+    expect(
+      find.text('Built for reassurance,\nnot surveillance.'),
+      findsOneWidget,
+    );
+    expect(find.text('Your place, held gently.'), findsNothing);
   });
 
   testWidgets('can join with a partner code', (tester) async {

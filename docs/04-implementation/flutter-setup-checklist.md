@@ -22,7 +22,7 @@ Core expected packages:
 - [ ] firebase_core
 - [ ] firebase_auth
 - [ ] cloud_firestore
-- [ ] firebase_messaging
+- [x] firebase_messaging
 - [ ] firebase_crashlytics
 - [ ] firebase_remote_config
 - [ ] google_sign_in

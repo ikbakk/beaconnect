@@ -40,6 +40,11 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
+  // Retain the last complete view while Home refreshes. Replacing it with a
+  // loading treatment would make a normal refresh feel like the app lost
+  // context about the relationship.
+  HomeSnapshot? _lastKnownHome;
+
   @override
   void initState() {
     super.initState();
@@ -96,52 +101,77 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final placeState = ref.watch(placeSnapshotControllerProvider);
     final placeController = ref.read(placeSnapshotControllerProvider.notifier);
 
+    if (snapshot.hasValue) {
+      _lastKnownHome = snapshot.requireValue;
+    }
+
+    final home = snapshot.valueOrNull;
+
     return Scaffold(
       backgroundColor: BcgColors.surface,
       body: SafeArea(
         bottom: false,
-        child: snapshot.when(
-          data: (home) {
-            final isLive = liveState.session != null && !liveState.session!.isPaused;
-            final isPaused = liveState.session?.isPaused ?? false;
-            final liveLabel = isLive
-                ? 'Stop Live'
-                : isPaused
-                    ? 'Resume'
-                    : 'Start Live';
-            return _HomeBody(
-              home: home,
-              isLive: isLive,
-              isPaused: isPaused,
-              liveLabel: liveLabel,
-              liveSession: liveState.session,
-              placeState: placeState,
-              onToggleLive: home.variant == HomeStateVariant.noPartner
-                  ? null
-                  : _toggleLiveSharing,
-              onCapturePlace: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                await placeController.capture();
-                if (!mounted) return;
-                final message =
-                    ref.read(placeSnapshotControllerProvider).lastMessage;
-                if (message != null) {
-                  messenger.showSnackBar(
-                    SnackBar(content: Text(message)),
-                  );
-                }
-                placeController.clearMessage();
-              },
-              onOpenMap: () => _openMapDetail(home),
-              onViewAllUpdates: () => context.go('/updates'),
-            );
-          },
-          error: (_, _) => _ErrorState(
-            onRetry: () => ref.invalidate(homeSnapshotProvider),
-          ),
-          loading: () => const _LoadingState(),
-        ),
+        child: home != null
+            ? _buildHomeBody(
+                home: home,
+                liveState: liveState,
+                placeState: placeState,
+                placeController: placeController,
+              )
+            : snapshot.when(
+                data: (_) => const SizedBox.shrink(),
+                error: (_, _) => _ErrorState(
+                  onRetry: () => ref.invalidate(homeSnapshotProvider),
+                ),
+                loading: () => _lastKnownHome == null
+                    ? const _LoadingState()
+                    : _buildHomeBody(
+                        home: _lastKnownHome!,
+                        liveState: liveState,
+                        placeState: placeState,
+                        placeController: placeController,
+                      ),
+              ),
       ),
+    );
+  }
+
+  Widget _buildHomeBody({
+    required HomeSnapshot home,
+    required LiveSharingState liveState,
+    required PlaceSnapshotState placeState,
+    required PlaceSnapshotController placeController,
+  }) {
+    final isLive = liveState.session != null && !liveState.session!.isPaused;
+    final isPaused = liveState.session?.isPaused ?? false;
+    final liveLabel = isLive
+        ? 'Stop Live'
+        : isPaused
+            ? 'Resume'
+            : 'Start Live';
+
+    return _HomeBody(
+      home: home,
+      isLive: isLive,
+      isPaused: isPaused,
+      liveLabel: liveLabel,
+      liveSession: liveState.session,
+      placeState: placeState,
+      onToggleLive: home.variant == HomeStateVariant.noPartner
+          ? null
+          : _toggleLiveSharing,
+      onCapturePlace: () async {
+        final messenger = ScaffoldMessenger.of(context);
+        await placeController.capture();
+        if (!mounted) return;
+        final message = ref.read(placeSnapshotControllerProvider).lastMessage;
+        if (message != null) {
+          messenger.showSnackBar(SnackBar(content: Text(message)));
+        }
+        placeController.clearMessage();
+      },
+      onOpenMap: () => _openMapDetail(home),
+      onViewAllUpdates: () => context.go('/updates'),
     );
   }
 

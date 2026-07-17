@@ -681,12 +681,32 @@ body {
 }
 .bcg-onboard__eyebrow {
   font-family: var(--bcg-font-mono);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--bcg-primary);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-bottom: var(--bcg-s-4);
+}
+.bcg-onboard__code {
+  margin-top: var(--bcg-s-5);
+  padding: var(--bcg-s-4);
+  border-radius: var(--bcg-r-md);
+  background: var(--bcg-surface-variant);
+  color: var(--bcg-fg);
+  text-align: center;
+}
+.bcg-onboard__code-value {
+  font-family: var(--bcg-font-mono);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+.bcg-onboard__code-expiry {
+  margin-top: var(--bcg-s-2);
+  font-family: var(--bcg-font-mono);
+  font-size: 13px;
+  color: var(--bcg-fg-muted);
 }
 .bcg-onboard__headline {
   font-family: var(--bcg-font-display);

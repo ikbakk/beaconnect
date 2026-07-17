@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../design/colors/bcg_colors.dart';
 import '../design/components/bcg_bottom_nav.dart';
+import '../features/onboarding/presentation/onboarding_screen.dart';
+import 'providers.dart';
 
-class AppShell extends StatelessWidget {
-  const AppShell({
-    super.key,
-    required this.navigationShell,
-  });
+class AppShell extends ConsumerWidget {
+  const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(appSessionProvider).hasPartner) {
+      return const OnboardingScreen();
+    }
+
     final path = GoRouterState.of(context).uri.path;
 
     return PopScope(

@@ -37,7 +37,8 @@ class OnboardingState {
   final String enteredInviteCode;
 
   String get inviteCode => currentPair?.inviteCode ?? '—';
-  String get partnerDisplayName => currentPair?.partnerDisplayName ?? 'your partner';
+  String get partnerDisplayName =>
+      currentPair?.partnerDisplayName ?? 'your partner';
   int get expiresInMinutes => currentPair?.expiresInMinutes ?? 5;
 
   OnboardingState copyWith({
@@ -126,6 +127,15 @@ class OnboardingController extends StateNotifier<OnboardingState> {
       currentPair: pair,
       isWorking: false,
       enteredInviteCode: '',
+      step: OnboardingStep.permissions,
+      clearAuthMessage: true,
+    );
+  }
+
+  void partnerApproved(PairRecord pair) {
+    state = state.copyWith(
+      currentPair: pair,
+      isWorking: false,
       step: OnboardingStep.permissions,
       clearAuthMessage: true,
     );

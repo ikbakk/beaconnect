@@ -21,7 +21,9 @@ devices/{deviceId}
 {
   "displayName": "Iqbal",
   "createdAt": "serverTimestamp",
-  "activePairId": "pair_123"
+  "activePairId": "pair_123",
+  "fcmToken": "device-token",
+  "fcmTokenUpdatedAt": "serverTimestamp"
 }
 ```
 
